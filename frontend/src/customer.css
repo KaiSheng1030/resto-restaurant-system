@@ -1,0 +1,249 @@
+/* ==========================================
+   APPLE STYLE — MODERN · THIN · PREMIUM UI
+   For Customer Pages (Improved Version)
+========================================== */
+
+/* ---- Container ---- */
+.cust-container {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  animation: fadeIn .35s ease;
+}
+
+.cust-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+  text-align: center;
+  letter-spacing: -0.3px; /* 更像苹果字体 */
+}
+
+.cust-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 26px;
+  text-align: center;
+}
+
+/* ==========================================
+   TABLE LIST — Apple Slim Card (iOS Settings)
+========================================== */
+
+.cust-table-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cust-card {
+  background: var(--card);
+  padding: 14px 20px;
+
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  cursor: pointer;
+  transition: 0.22s cubic-bezier(.17,.67,.43,1);
+}
+
+.cust-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+/* 左侧标题 */
+.cust-table-id {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+/* 右侧状态圆角标签 */
+.cust-status {
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.cust-card.available .cust-status {
+  background: rgba(52,199,89,0.15);
+  color: rgb(52,199,89);
+}
+
+.cust-card.occupied .cust-status {
+  background: rgba(255,59,48,0.15);
+  color: rgb(255,59,48);
+}
+
+/* ==========================================
+   TIMESLOTS — Apple Calendar List Rows
+========================================== */
+
+.cust-timeslot-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cust-timeslot-row {
+  background: var(--card);
+  padding: 13px 18px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 1px 12px rgba(0,0,0,0.04);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+
+.cust-timeslot-badge {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.cust-timeslot-badge.good {
+  background: rgba(52,199,89,0.18);
+  color: rgb(52,199,89);
+}
+
+.cust-timeslot-badge.bad {
+  background: rgba(255,59,48,0.18);
+  color: rgb(255,59,48);
+}
+
+/* ==========================================
+   Apple Blue Primary Button
+========================================== */
+
+.cust-primary-btn {
+  width: 100%;
+  padding: 14px 0;
+
+  background: linear-gradient(95deg, #0a7aff, #0056d6);
+  border: none;
+  border-radius: 14px;
+
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+
+  margin-top: 26px;
+  cursor: pointer;
+
+  transition: .22s ease;
+}
+
+.cust-primary-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+/* ==========================================
+   Apple Reservation Form — Clean & Soft
+========================================== */
+
+.cust-card-big {
+  width: 100%;
+  background: var(--card);
+  padding: 24px;
+
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.05);
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cust-field label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.cust-input {
+  width: 100%;
+  padding: 13px 12px;
+
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  border-radius: 12px;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+
+  transition: 0.22s ease;
+}
+
+.cust-input:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0,122,255,0.25);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================
+   Mini Back (Apple Style Super Thin)
+========================================== */
+.mini-back {
+  font-size: 15px;
+  font-weight: 500;
+  color: #007aff;
+
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 520px;
+
+  cursor: pointer;
+  user-select: none;
+
+  display: flex;
+  align-items: center;
+
+  transition: .2s ease;
+}
+
+.mini-arrow {
+  font-size: 18px;
+  margin-right: 2px;
+  line-height: 1;
+}
+
+.mini-back:hover {
+  transform: translateX(-2px);
+  filter: brightness(1.1);
+}

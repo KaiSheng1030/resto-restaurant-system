@@ -1,0 +1,900 @@
+/* ---------- Root theme variables ---------- */
+:root{
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --text: #0f172a;
+  --accent: #111827;
+  --accent-2: #0b74ff;
+  --success: #16a34a;
+  --danger: #ef4444;
+  --glass: rgba(255,255,255,0.6);
+  --shadow: 0 6px 24px rgba(12,18,30,0.08);
+  --radius-lg: 18px;
+}
+
+/* Smooth animation settings */
+:root {
+  --fade-duration: 0.4s;
+  --slide-duration: 0.35s;
+}
+
+/* Dark theme variables */
+:root[data-theme="dark"]{
+  --bg: #0b1220;
+  --card: rgba(255,255,255,0.03);
+  --muted: #9aa4b2;
+  --text: #e6eef8;
+  --accent: #ffffff;
+  --accent-2: #4ea3ff;
+  --success: #2dd4bf;
+  --danger: #ff6b6b;
+  --glass: rgba(255,255,255,0.04);
+  --shadow: 0 6px 24px rgba(2,6,23,0.7);
+}
+
+/* ---------- Global ---------- */
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg,var(--bg), var(--bg));
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-size:15px;
+}
+
+/* Layout */
+.layout{
+  display:grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  min-height:100vh;
+  padding: 26px;
+}
+
+/* Sidebar */
+.sidebar{
+  background: linear-gradient(180deg, var(--card), var(--card));
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:18px;
+  height: calc(100vh - 52px);
+  position:sticky;
+  top:26px;
+}
+
+.logo{
+  font-weight:700;
+  font-size:20px;
+  color:var(--text);
+}
+.logo-dot{ color: var(--accent-2); margin-left:4px; }
+
+.subtitle{ color:var(--muted); font-size:13px; margin-top:4px; }
+
+.nav{ display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+.nav button{
+  background:transparent;
+  border:none;
+  text-align:left;
+  padding:12px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  color:var(--text);
+  font-weight:600;
+  transition:all .15s ease;
+}
+.nav button:hover{ background:var(--glass); transform:translateY(-2px); }
+
+/* Sidebar footer */
+.sidebar-foot{ font-size:12px; color:var(--muted) }
+
+/* Content area */
+.content{ display:flex; flex-direction:column; gap:18px; }
+
+/* Topbar */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.topbar-left{ display:flex; align-items:center; gap:12px; }
+.brand{ margin:0; font-size:20px; }
+.top-sub{ color:var(--muted); font-size:13px; }
+
+.topbar-right{ display:flex; align-items:center; gap:10px; }
+.theme-toggle{
+  padding:8px 12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.06);
+  background:transparent;
+  cursor:pointer;
+  font-weight:600;
+}
+.mini-btn{
+  padding:8px 12px;
+  border-radius:12px;
+  background:var(--accent);
+  color:var(--card);
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* Page area */
+.page-area{
+  margin-top:6px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* Cards */
+.card, .form-card, .dash-card, .booking-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+/* Dashboard grid */
+.dashboard-grid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:18px;
+}
+.dash-card{ padding:20px; transition:transform .15s ease; }
+.dash-card:hover{ transform:translateY(-6px); }
+.dash-title{ color:var(--muted); font-size:13px; }
+.dash-num{ font-size:28px; font-weight:800; margin-top:8px; }
+.dash-sub{ color:var(--muted); font-size:13px; margin-top:6px; }
+
+/* Form card */
+.form-card{ padding:20px; max-width:760px; }
+.form-card h2{ margin-top:0; margin-bottom:12px; }
+.form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center; }
+.form-grid input{ padding:12px 14px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:transparent; color:var(--text); }
+.form-grid input:focus{ outline:none; box-shadow:0 6px 20px rgba(0,0,0,0.06); }
+.primary-btn{
+  grid-column: 1 / -1;
+  padding:12px 16px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  background: linear-gradient(90deg,var(--accent), var(--accent-2));
+  color: white;
+  font-weight:700;
+}
+
+/* Booking list / Admin */
+.booking-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:12px;
+}
+.booking-info{ display:flex; flex-direction:column; }
+.booking-name{ font-weight:700; font-size:16px; }
+.booking-meta{ color:var(--muted); font-size:13px; margin-top:6px; }
+
+.booking-actions{ display:flex; gap:8px; }
+.danger-btn{
+  padding:8px 12px;
+  background:var(--danger);
+  border:none;
+  color:white;
+  border-radius:10px;
+  cursor:pointer;
+}
+.danger-btn:hover{ filter:brightness(.92); }
+
+/* Skeleton */
+.skeleton-list{ display:flex; flex-direction:column; gap:12px; }
+.skeleton{
+  height:72px;
+  border-radius:12px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.04) 100%);
+  animation: shimmer 1.2s infinite;
+}
+@keyframes shimmer { 0%{background-position:-200px 0} 100%{background-position:200px 0} }
+
+/* Empty state */
+.empty{ padding:20px; color:var(--muted); }
+
+/* Toast */
+.toast{
+  position:fixed;
+  right:26px;
+  bottom:26px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  color:white;
+  padding:12px 16px;
+  border-radius:12px;
+  box-shadow: 0 8px 30px rgba(10,12,20,0.3);
+  font-weight:700;
+}
+
+/* Dialog */
+.dialog-overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(2,6,23,0.4);
+}
+.dialog-box{
+  width:360px;
+  padding:18px;
+  border-radius:12px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.dialog-buttons{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+.dialog-buttons button{ padding:8px 12px; border-radius:10px; border:none; cursor:pointer; }
+.dialog-buttons .danger-btn{ background:var(--danger); color:white; }
+
+/* small screens */
+@media (max-width:900px){
+  .layout{ grid-template-columns: 1fr; padding:16px; }
+  .sidebar{ position:relative; height:auto; display:flex; flex-direction:row; gap:10px; align-items:center; padding:12px; border-radius:12px; }
+  .nav{ flex-direction:row; gap:8px; overflow:auto; }
+  .page-area{ margin-top:12px; }
+  .dashboard-grid{ grid-template-columns: repeat(1, 1fr); }
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+/* small visual polish for inputs/buttons in dark */
+:root[data-theme="dark"] input { border: 1px solid rgba(255,255,255,0.06); color:var(--text); background: rgba(255,255,255,0.02); }
+
+/* ------ Tables UI ------ */
+
+.table-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.table-card {
+  background: var(--card);
+  border-radius: 15px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  transition: 0.2s ease;
+}
+
+.table-card.available {
+  border-left: 6px solid var(--success);
+}
+
+.table-card.occupied {
+  border-left: 6px solid var(--danger);
+  opacity: 0.85;
+}
+
+.table-card:hover {
+  transform: translateY(-4px);
+}
+
+.table-status {
+  margin-top: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  display: inline-block;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.available .table-status {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success);
+}
+
+.occupied .table-status {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
+/* Smooth fade-in animation */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn var(--fade-duration) ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sidebar {
+  animation: slideInLeft var(--slide-duration) ease-out forwards;
+  transform: translateX(-20px);
+  opacity: 0;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Beautiful Search Bar */
+.search-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-box {
+  width: 100%;
+  padding: 12px 16px 12px 40px; /* leave space for icon */
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--card);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.25s ease;
+  box-shadow: var(--shadow);
+}
+
+/* Hover */
+.search-box:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Focus */
+.search-box:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(50, 130, 255, 0.35);
+}
+  
+/* Dark Mode */
+:root[data-theme="dark"] .search-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .search-box:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+:root[data-theme="dark"] .search-box:focus {
+  box-shadow: 0 0 0 3px rgba(78, 163, 255, 0.35);
+}
+
+/* ---------- BEAUTIFUL EDIT DIALOG ---------- */
+
+.edit-dialog {
+  width: 520px;
+  max-width: 90%;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  animation: scaleIn .25s ease forwards;
+}
+
+/* scale animation */
+@keyframes scaleIn {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.dialog-title {
+  margin: 0 0 20px 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.dialog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.dialog-input {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.1);
+  font-size: 15px;
+  background: var(--card);
+  color: var(--text);
+  transition: all .2s ease;
+}
+
+.dialog-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 128, 255, 0.3);
+}
+
+.dialog-buttons-2 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-btn {
+  padding: 10px 16px;
+  background: #d1d5db;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cancel-btn:hover {
+  filter: brightness(0.94);
+}
+
+.save-btn {
+  padding: 10px 20px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border: none;
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.save-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* dark mode */
+:root[data-theme="dark"] .dialog-input {
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+:root[data-theme="dark"] .cancel-btn {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+/* ---------- BEAUTIFUL EDIT DIALOG ---------- */
+
+.edit-dialog {
+  width: 520px;
+  max-width: 90%;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  animation: scaleIn .25s ease forwards;
+}
+
+/* Scale animation */
+@keyframes scaleIn {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.dialog-title {
+  margin: 0 0 20px 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.dialog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.dialog-input {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.1);
+  font-size: 15px;
+  background: var(--card);
+  color: var(--text);
+  transition: all .2s ease;
+}
+
+.dialog-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 128, 255, 0.3);
+}
+
+.dialog-buttons-2 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-btn {
+  padding: 10px 16px;
+  background: #d1d5db;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cancel-btn:hover {
+  filter: brightness(0.94);
+}
+
+.save-btn {
+  padding: 10px 20px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border: none;
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.save-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* ========== SIDEBAR DARK MODE - FULL FIX ========== */
+
+/* Sidebar container dark mode */
+:root[data-theme="dark"] .sidebar {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Sidebar Title / Logo */
+:root[data-theme="dark"] .logo,
+:root[data-theme="dark"] .logo-dot,
+:root[data-theme="dark"] .subtitle {
+  color: var(--text) !important;
+}
+
+/* Sidebar Nav Buttons */
+:root[data-theme="dark"] .nav button {
+  color: var(--text) !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Nav hover */
+:root[data-theme="dark"] .nav button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  transform: translateY(-2px);
+}
+
+/* Active page button (if you add .active class later) */
+:root[data-theme="dark"] .nav button.active {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: white !important;
+}
+
+/* Sidebar footer text */
+:root[data-theme="dark"] .sidebar-foot {
+  color: var(--muted) !important;
+}
+
+/* Fix scroll shadows inside sidebar */
+:root[data-theme="dark"] .sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Fix topbar right buttons (reservation + theme toggle) */
+:root[data-theme="dark"] .mini-btn {
+  background: var(--accent-2) !important;
+  color: white !important;
+}
+
+/* Fix theme toggle button */
+:root[data-theme="dark"] .theme-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text) !important;
+}
+
+/* ===========================
+   SMOOTH THEME TRANSITIONS
+   =========================== */
+
+* {
+  transition: background-color 0.35s ease,
+              color 0.35s ease,
+              border-color 0.35s ease,
+              box-shadow 0.35s ease;
+}
+
+html {
+  background: var(--bg);
+  transition: background 0.35s ease;
+}
+
+:root, 
+:root[data-theme="dark"] {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.sidebar, 
+.topbar, 
+.dash-card, 
+.form-card, 
+.booking-card, 
+.table-card, 
+.dialog-box, 
+.theme-toggle {
+  transition: background 0.35s ease,
+              color 0.35s ease,
+              border 0.35s ease,
+              box-shadow 0.35s ease,
+              backdrop-filter 0.35s ease;
+}
+
+input, button {
+  transition: background-color 0.35s ease,
+              color 0.35s ease,
+              border-color 0.35s ease,
+              box-shadow 0.35s ease;
+}
+
+/* ===========================
+   Animated Theme Toggle
+   =========================== */
+
+.theme-toggle-animated {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-track {
+  width: 54px;
+  height: 28px;
+  background: var(--card);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  position: relative;
+  transition: background-color 0.35s ease, box-shadow 0.35s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+.toggle-track.light {
+  background: #e5e7eb;
+}
+
+.toggle-track.dark {
+  background: rgba(255,255,255,0.15);
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+
+.toggle-thumb {
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              background-color 0.35s ease,
+              color 0.35s ease;
+}
+
+.toggle-track.light .toggle-thumb {
+  transform: translateX(0px);
+}
+
+.toggle-track.dark .toggle-thumb {
+  transform: translateX(26px);
+  background: rgba(255,255,255,0.9);
+  color: #111;
+}
+
+/* =========================
+   UI / UX : Buttons, Shadows, Hover, Responsive
+   ========================= */
+
+/* Buttons: modern primary / ghost / mini */
+.btn {
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform .18s cubic-bezier(.2,.9,.2,1), box-shadow .18s ease, filter .18s ease;
+  box-shadow: 0 6px 20px rgba(12,18,30,.06);
+}
+
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  color: white;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.06);
+  color: var(--text);
+}
+
+/* mini button used for "+ Reservation" */
+.mini-btn {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight:700;
+  background: var(--accent);
+  color: var(--card);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+/* elevated subtle hover */
+.card, .dash-card, .table-card {
+  transition: transform .28s cubic-bezier(.16,.84,.24,1), box-shadow .28s ease;
+}
+.card:hover, .dash-card:hover, .table-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 50px rgba(12,18,30,0.12);
+}
+
+/* Table card accent right -> nicer curved accent */
+.table-card {
+  position: relative;
+  overflow: visible;
+}
+.table-card::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 12px;
+  bottom: 12px;
+  width: 8px;
+  border-radius: 10px;
+  background: linear-gradient(180deg,var(--success), rgba(34,197,94,0.8));
+  box-shadow: 0 6px 18px rgba(34,197,94,0.06);
+}
+
+/* Table status badge */
+.table-status {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight:700;
+  font-size:13px;
+  display:inline-block;
+}
+
+/* Charts container polish */
+.charts-grid .card {
+  padding:18px;
+  border-radius:18px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 1100px) {
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .layout { padding: 14px; }
+}
+
+/* Smooth theme transition (polished) */
+* { transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease; }
+
+/* Toast style (notification) */
+.notification-bell {
+  position: relative;
+  cursor: pointer;
+}
+.notification-bell .badge {
+  position:absolute;
+  right:-6px;
+  top:-6px;
+  min-width:18px;
+  height:18px;
+  border-radius:18px;
+  font-size:11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ef4444;
+  color:white;
+  padding:0 5px;
+}
+
+/* Edit input focus color tweak already present, ensure contrast */
+.dialog-input { transition: box-shadow .25s ease, border-color .25s ease; }
+
+/* subtle skeleton shimmer (for loading states) */
+.skeleton { background: linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.04) 100%); background-size: 300% 100%; animation: shimmer 1.3s linear infinite; }
+
+/* FORCE charts spacing */
+.charts-grid .card {
+  padding-top: 20px !important;
+}
+
+.charts-grid h3 {
+  margin-bottom: 16px !important;
+  z-index: 5;
+  position: relative;
+}
+
+.charts-grid canvas {
+  margin-top: 10px !important;
+  display: block;
+}
+
+/* ===== FINAL FIX: Prevent charts from lifting & overlapping titles ===== */
+
+/* Chart cards must not move on hover */
+.chart-card:hover {
+  transform: none !important;
+  box-shadow: 0 12px 32px rgba(12,18,30,0.12) !important;
+}
+
+/* Ensure enough spacing between title and chart */
+.chart-card {
+  padding-top: 26px !important;
+  padding-bottom: 18px !important;
+  height: 320px !important;
+}
+
+.chart-title {
+  margin: 0 0 16px 0 !important;
+  font-size: 18px;
+  font-weight: 700;
+  position: relative;
+  z-index: 5;
+}
+
+/* Safe spacing for canvas */
+.chart-card canvas {
+  margin-top: 14px !important;
+  display: block;
+}
+
+.custom-legend {
+  display: flex;
+  gap: 28px; /* spacing between each label */
+  justify-content: center;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  white-space: nowrap; /* 永不换行 */
+  font-weight: 600;
+  color: var(--text);
+}
+
+.custom-legend div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: inline-block;
+}
