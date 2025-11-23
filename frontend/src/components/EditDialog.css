@@ -1,0 +1,109 @@
+/* Background overlay (remove transparency issue) */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55); /* darker, less transparent */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(6px); /* mac style blur */
+  z-index: 1000;
+}
+
+/* Dialog box */
+.dialog-box {
+  background: var(--card); /* respects light/dark theme */
+  padding: 28px;
+  width: 420px;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.15); /* subtle mac border */
+  animation: popup .25s ease;
+}
+
+/* Input fields */
+.dialog-box input,
+.dialog-box select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.9);
+}
+
+/* Buttons row */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+  gap: 12px;
+}
+
+.dialog-btn {
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* Cancel Button */
+.dialog-btn.cancel {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+
+.dialog-btn.cancel:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* Save Button (Apple style) */
+.dialog-btn.save {
+  background: linear-gradient(90deg, #007aff, #0056d6);
+  color: white;
+}
+
+.dialog-btn.save:hover {
+  filter: brightness(1.07);
+}
+
+/* Popup animation */
+@keyframes popup {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===============================
+   Edit Dialog — Fix Transparency
+=============================== */
+
+.dialog-bg {
+  background-color: rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Light Mode Dialog */
+.dialog-box {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Dark Mode Dialog — FIX OPACITY */
+:root[data-theme="dark"] .dialog-box {
+  background: #1e1e1e !important; /* 绝对不透明 */
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+}

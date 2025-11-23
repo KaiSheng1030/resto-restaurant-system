@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createBooking } from "../../api";
 import "../../customer.css";
 
-export default function CustomerReserve({ setToast, setPage }) {
+export default function CustomerReserve({ setToast, setPage, selectedTable }) {
+
   const [form, setForm] = useState({
     name: "",
     people: "",
-    table: "",
+    table: selectedTable || "",
     time: "",
   });
+
+  // 如果从某张桌子点击 “预约” → 自动填入 table
+  useEffect(() => {
+    if (selectedTable) {
+      setForm((f) => ({ ...f, table: selectedTable }));
+    }
+  }, [selectedTable]);
 
   const change = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,18 +27,23 @@ export default function CustomerReserve({ setToast, setPage }) {
       return;
     }
 
-    await createBooking(form);
-    setToast("预约成功！");
-    setPage("customer");
+    try {
+      await createBooking(form);
+      setToast("预约成功！");
+      setPage("customer");
+    } catch (err) {
+      // ⭐ 捕捉后端返回的错误信息
+      setToast(err.response?.data?.error || "预约失败，请稍后再试");
+    }
   };
 
   return (
     <div className="cust-container fade-in">
 
-      <h1 className="cust-title">🍽️ 餐桌预约</h1>
+      <h1 className="cust-title">餐桌预约</h1>
       <p className="cust-subtitle">填写资料完成您的预订</p>
 
-      <div className="cust-card-big">
+      <div className="cust-form-box">
 
         {/* NAME */}
         <div className="cust-field">
@@ -73,6 +86,9 @@ export default function CustomerReserve({ setToast, setPage }) {
             <option value="4">餐桌 4</option>
             <option value="5">餐桌 5</option>
           </select>
+          {selectedTable && (
+            <div className="cust-tip">（已为你自动选择餐桌 {selectedTable}）</div>
+          )}
         </div>
 
         {/* TIME */}
@@ -105,9 +121,10 @@ export default function CustomerReserve({ setToast, setPage }) {
         </div>
 
         {/* BUTTON */}
-        <button className="cust-submit-btn" onClick={submit}>
+        <button className="cust-primary-btn" onClick={submit}>
           确认预约
         </button>
+
       </div>
     </div>
   );

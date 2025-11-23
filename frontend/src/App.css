@@ -898,3 +898,82 @@ input, button {
   border-radius: 4px;
   display: inline-block;
 }
+
+.table-manager-card {
+  padding: 20px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.tm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.tm-count {
+  background: #eef3ff;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #3d55ff;
+}
+
+.tm-list {
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tm-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #fafafa;
+  transition: 0.15s;
+}
+
+.tm-row:nth-child(even) {
+  background: #f3f3f3;
+}
+
+.tm-row:hover {
+  background: #e7ecff;
+}
+
+.tm-label {
+  font-weight: 500;
+}
+
+.tm-delete {
+  background: #ff5a5a;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tm-add {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.tm-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+.tm-add-btn {
+  background: #3d55ff;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}

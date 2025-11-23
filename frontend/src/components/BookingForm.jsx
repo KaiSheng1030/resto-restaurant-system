@@ -10,21 +10,35 @@ export default function BookingForm({ setToast }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     if (!name || !date || !time) {
       setToast?.("Please fill all fields");
       return;
     }
+
     setLoading(true);
+
     try {
-      const payload = { name, people: Number(people), time: `${date} ${time}` };
+      const payload = {
+        name,
+        people: Number(people),
+        time: `${date} ${time}`
+      };
+
       await createBooking(payload);
+
       setToast?.("Reservation Created!");
-      setName(""); setPeople(2); setDate(""); setTime("");
+      setName("");
+      setPeople(2);
+      setDate("");
+      setTime("");
+
     } catch (err) {
-      setToast?.("Failed to create reservation");
-    } finally {
-      setLoading(false);
+      console.log(err.response?.data);
+      setToast?.(err.response?.data?.message || "Failed to create reservation");
     }
+
+    setLoading(false);
   }
 
   return (

@@ -2,13 +2,27 @@ import React, { useEffect, useState } from "react";
 import { getBookings } from "../../api";
 import "../../customer.css";
 import "./TimeSlots.css";
-import MiniBack from "./MiniBack";   // ⭐ Apple 风格返回按钮
+import MiniBack from "./MiniBack";
 
 export default function CustomerTablePage({ tableId, setPage }) {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    getBookings().then((res) => setBookings(res.data || []));
+    const load = async () => {
+      try {
+        const res = await getBookings();
+        setBookings(res.data || []);
+      } catch (e) {
+        console.log("Failed to load bookings");
+      }
+    };
+
+    load(); // 第一次载入
+
+    // ⭐每 5 秒自动刷新最新预约状态（可删除）
+    const timer = setInterval(load, 5000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const timeSlots = [
@@ -26,27 +40,27 @@ export default function CustomerTablePage({ tableId, setPage }) {
     "21:00 - 22:00",
   ];
 
-  const getStatus = (slot) => {
-    return bookings.some(
+  const getStatus = (slot) =>
+    bookings.some(
       (b) => Number(b.table) === Number(tableId) && b.time === slot
     )
       ? "reserved"
       : "free";
-  };
 
   return (
     <div className="cust-container fade-in">
 
-      {/* ⭐ Apple 风格返回按钮 */}
+      {/* ⭐ Apple 简洁返回按钮 */}
       <MiniBack onBack={() => setPage("customer")} />
 
       <h1 className="cust-title">餐桌 {tableId} 时段表</h1>
-      <p className="cust-subtitle">查看此桌每个时间段的预约状况</p>
+      <p className="cust-subtitle">查看此桌每小时是否已被预订</p>
 
       <div className="cust-timeslot-list">
         {timeSlots.map((slot) => (
           <div key={slot} className="cust-timeslot-row">
             <span>{slot}</span>
+
             <span
               className={`cust-timeslot-badge ${
                 getStatus(slot) === "reserved" ? "bad" : "good"

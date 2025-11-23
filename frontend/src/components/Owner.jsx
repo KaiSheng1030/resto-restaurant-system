@@ -1,14 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { getBookings, cancelBooking } from "../api";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function Owner() {
   const [bookings, setBookings] = useState([]);
 
+  // ⭐ TABLES FROM LOCAL STORAGE
+  const [tables, setTables] = useState(() => {
+    const saved = localStorage.getItem("tables");
+    return saved ? JSON.parse(saved) : [1, 2, 3, 4, 5];
+  });
+
+  const [newTable, setNewTable] = useState("");
+
+  // ⭐ CONFIRM DIALOG
+  const [confirmData, setConfirmData] = useState(null);
+
+  // Save tables to localStorage
+  useEffect(() => {
+    localStorage.setItem("tables", JSON.stringify(tables));
+  }, [tables]);
+
+  const addTable = () => {
+    const num = Number(newTable);
+
+    if (!num) return alert("Invalid table number");
+    if (tables.includes(num)) return alert("Table already exists");
+
+    const updated = [...tables, num].sort((a, b) => a - b);
+    setTables(updated);
+    setNewTable("");
+  };
+
+  const deleteTable = (id) => {
+    if (window.confirm("Delete this table?")) {
+      setTables(tables.filter((t) => t !== id));
+    }
+  };
+
   const load = async () => {
     try {
       const res = await getBookings();
-      setBookings(res.data);
-    } catch (e) {}
+      setBookings(res.data || []);
+    } catch {}
   };
 
   useEffect(() => {
@@ -22,7 +56,7 @@ export default function Owner() {
     <div className="fade-in">
       <h2>Owner Panel Overview</h2>
 
-      {/* SUMMARY CARDS */}
+      {/* Stats */}
       <div className="dashboard-grid" style={{ marginBottom: "20px" }}>
         <div className="dash-card">
           <div className="dash-title">Today's Bookings</div>
@@ -35,19 +69,47 @@ export default function Owner() {
         </div>
 
         <div className="dash-card">
-          <div className="dash-title">Tables Used</div>
-          <div className="dash-num">
-            {bookings.filter((b) => b.table).length}
-          </div>
+          <div className="dash-title">Tables Available</div>
+          <div className="dash-num">{tables.length}</div>
         </div>
       </div>
 
-      {/* RESERVATIONS LIST */}
-      <h3>All Reservations</h3>
+      {/* Table Manager */}
+      <div className="card table-manager-card">
+        <div className="tm-header">
+          <h3>Table Manager</h3>
+          <span className="tm-count">{tables.length} tables</span>
+        </div>
 
-      {bookings.length === 0 && (
-        <p className="empty">No reservations yet.</p>
-      )}
+        <div className="tm-list">
+          {tables.map((t) => (
+            <div key={t} className="tm-row">
+              <span className="tm-label">Table {t}</span>
+              <button className="tm-delete" onClick={() => deleteTable(t)}>
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="tm-add">
+          <input
+            type="number"
+            placeholder="Enter new table number"
+            value={newTable}
+            onChange={(e) => setNewTable(e.target.value)}
+            className="tm-input"
+          />
+          <button className="tm-add-btn" onClick={addTable}>
+            Add
+          </button>
+        </div>
+      </div>
+
+      {/* Reservations */}
+      <h3 style={{ marginTop: "25px" }}>All Reservations</h3>
+
+      {bookings.length === 0 && <p className="empty">No reservations yet.</p>}
 
       {bookings.map((b) => (
         <div className="booking-card" key={b.id}>
@@ -61,15 +123,30 @@ export default function Owner() {
 
           <button
             className="danger-btn"
-            onClick={async () => {
-              await cancelBooking(b.id);
-              load();
-            }}
+            onClick={() =>
+              setConfirmData({
+                bookingId: b.id,
+                name: b.name,
+              })
+            }
           >
             Cancel
           </button>
         </div>
       ))}
+
+      {/* Confirm Dialog */}
+      {confirmData && (
+        <ConfirmDialog
+          message={`Cancel reservation for ${confirmData.name}?`}
+          onCancel={() => setConfirmData(null)}
+          onConfirm={async () => {
+            await cancelBooking(confirmData.bookingId);
+            setConfirmData(null);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }

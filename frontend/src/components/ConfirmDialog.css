@@ -1,0 +1,48 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.dialog-box {
+  background: #fff;
+  padding: 22px 28px;
+  border-radius: 14px;
+  width: 330px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+  text-align: center;
+  animation: popIn 0.2s ease;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+  gap: 12px;
+}
+
+.dialog-buttons button {
+  padding: 8px 15px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.danger-btn {
+  background: #ff4d4d;
+  color: white;
+}
+
+.danger-btn:hover {
+  background: #d13939;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

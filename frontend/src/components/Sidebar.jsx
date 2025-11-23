@@ -11,18 +11,14 @@ export default function Sidebar({ setPage }) {
       </div>
 
       <nav className="nav">
-
-        {/* MAIN PAGES */}
         <button onClick={() => setPage("dashboard")}>Dashboard</button>
-        <button onClick={() => setPage("reserve")}>Make Reservation</button>
+
+        {/* Reservation now goes to customer page */}
+        <button onClick={() => setPage("customer")}>Make Reservation</button>
+
         <button onClick={() => setPage("admin")}>Admin Panel</button>
-
-        {/* CUSTOMER VIEW */}
         <button onClick={() => setPage("customer")}>Customer</button>
-
-        {/* ⭐ OWNER PANEL */}
         <button onClick={() => setPage("owner")}>Owner Panel</button>
-
       </nav>
 
       <footer className="sidebar-foot">v1.0 • Local</footer>

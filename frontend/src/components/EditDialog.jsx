@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./EditDialog.css"; 
 
 export default function EditDialog({ data, onCancel, onSave }) {
   const [name, setName] = useState(data.name);
