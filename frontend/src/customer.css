@@ -82,13 +82,22 @@
   letter-spacing: -0.2px;
 }
 
+.cust-card.available {
+  border-left: 4px solid rgba(52,199,89,0.8);
+}
+
 .cust-card.available .cust-status {
   background: rgba(52,199,89,0.15);
   color: rgb(52,199,89);
 }
 
+.cust-card.occupied {
+  border-left: 4px solid rgba(255,59,48,0.9);
+  background: rgba(255,59,48,0.03);
+}
+
 .cust-card.occupied .cust-status {
-  background: rgba(255,59,48,0.15);
+  background: rgba(255,59,48,0.18);
   color: rgb(255,59,48);
 }
 

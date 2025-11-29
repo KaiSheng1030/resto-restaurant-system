@@ -3,7 +3,6 @@ import { createBooking, getTables } from "../../api";
 import "../../customer.css";
 
 export default function CustomerReserve({ setToast, setPage, selectedTable }) {
-  const safeToast = setToast || ((msg) => console.log("[Toast]", msg));
   const [tables, setTables] = useState([]);
 
   useEffect(() => {
@@ -17,22 +16,34 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
     time: "",
     phone: "",
   });
+  const [assignedTable, setAssignedTable] = useState(null);
 
   const change = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const submit = async () => {
-    if (!form.name || !form.people || !form.table || !form.time || !form.phone) {
-      safeToast("请填写所有字段！");
+    if (!form.name || !form.people || !form.time) {
+      setToast("请填写所有字段！");
       return;
     }
 
     try {
-      await createBooking(form);
-      safeToast("预约成功！");
-      setPage("customer");
+      const payload = {
+        name: form.name,
+        people: form.people,
+        time: form.time,
+        ...(form.table && { table: form.table }),
+        ...(form.phone && { phone: form.phone })
+      };
+      const res = await createBooking(payload);
+      const tableId = res.data?.table;
+      setAssignedTable(tableId);
+      setToast(tableId ? `预约成功！已为您分配餐桌 ${tableId}` : "预约成功！");
+      setTimeout(() => {
+        setPage("customer");
+      }, 2000);
     } catch (err) {
-      safeToast(err.response?.data?.error || "预约失败");
+      setToast(err.response?.data?.error || "预约失败");
     }
   };
 
@@ -55,10 +66,11 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
 
         {/* PHONE */}
         <div className="cust-field">
-          <label>手机号码</label>
+          <label>手机号码（可选）</label>
           <input
             className="cust-input"
             name="phone"
+            placeholder="请输入手机号码"
             value={form.phone}
             onChange={change}
           />
@@ -78,17 +90,17 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
 
         {/* TABLE (动态) */}
         <div className="cust-field">
-          <label>餐桌编号</label>
+          <label>餐桌编号（可选）</label>
           <select
             className="cust-input"
             name="table"
             value={form.table}
             onChange={change}
           >
-            <option value="">请选择</option>
+            <option value="">自动分配最合适的餐桌</option>
             {tables.map((t) => (
-              <option key={t} value={t}>
-                餐桌 {t}
+              <option key={t.id} value={t.id}>
+                餐桌 {t.id} ({t.capacity}人座)
               </option>
             ))}
           </select>
@@ -130,6 +142,14 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
         <button className="cust-primary-btn" onClick={submit}>
           确认预约
         </button>
+
+        {/* SUCCESS MESSAGE */}
+        {assignedTable && (
+          <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#e8f5e9', borderRadius: '8px', fontSize: '16px', color: '#2e7d32', textAlign: 'center' }}>
+            ✓ 已为您分配餐桌 {assignedTable}
+          </div>
+        )}
+
       </div>
     </div>
   );

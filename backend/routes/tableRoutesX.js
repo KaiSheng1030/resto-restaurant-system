@@ -1,31 +1,53 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const router = express.Router();
 
-// Temporary in-memory table storage
-let tables = [1, 2, 3, 4, 5];
+const tablesPath = path.join(__dirname, "../tables.json");
+
+function loadTables() {
+  return JSON.parse(fs.readFileSync(tablesPath, "utf8"));
+}
+
+function saveTables(data) {
+  fs.writeFileSync(tablesPath, JSON.stringify(data, null, 2));
+}
 
 /* -----------------------------
    GET ALL TABLES
 ------------------------------ */
 router.get("/", (req, res) => {
-  res.json(tables);
+  try {
+    const tables = loadTables();
+    res.json(tables);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to read tables" });
+  }
 });
 
 /* -----------------------------
    ADD NEW TABLE
+   Accepts { number, capacity } (number optional -> auto id)
 ------------------------------ */
 router.post("/", (req, res) => {
-  const { number } = req.body;
-  const num = Number(number);
+  const { number, capacity } = req.body;
+  let tables = loadTables();
 
-  if (!num) return res.status(400).json({ error: "Invalid table number" });
-
-  if (tables.includes(num))
+  let id = number !== undefined ? Number(number) : null;
+  if (id && tables.some(t => t.id === id)) {
     return res.status(400).json({ error: "Table already exists" });
+  }
 
-  tables.push(num);
-  tables.sort((a, b) => a - b);
+  if (!id) {
+    id = (tables.reduce((m, t) => Math.max(m, t.id), 0) || 0) + 1;
+  }
 
+  const cap = capacity ? Number(capacity) : 4;
+  const newTable = { id, capacity: cap, available: true };
+  tables.push(newTable);
+  tables.sort((a, b) => a.id - b.id);
+
+  saveTables(tables);
   res.json(tables);
 });
 
@@ -34,9 +56,14 @@ router.post("/", (req, res) => {
 ------------------------------ */
 router.delete("/:id", (req, res) => {
   const id = Number(req.params.id);
+  let tables = loadTables();
 
-  tables = tables.filter((t) => t !== id);
+  if (!tables.some(t => t.id === id)) {
+    return res.status(404).json({ error: "Table not found" });
+  }
 
+  tables = tables.filter((t) => t.id !== id);
+  saveTables(tables);
   res.json(tables);
 });
 

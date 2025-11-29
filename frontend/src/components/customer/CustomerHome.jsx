@@ -37,6 +37,11 @@ export default function CustomerHome({ setPage, setSelectedTable }) {
     "19:00 - 20:00", "20:00 - 21:00", "21:00 - 22:00",
   ];
 
+  // ⭐ 判断桌子是否有任何预订
+  const hasBookings = (id) => {
+    return bookings.some((b) => Number(b.table) === id);
+  };
+
   // ⭐ 判断是否整天满
   const isFullyBooked = (id) => {
     const booked = bookings
@@ -55,7 +60,7 @@ export default function CustomerHome({ setPage, setSelectedTable }) {
         {tables.map((t) => (
           <div
             key={t}
-            className={`cust-card ${isFullyBooked(t) ? "occupied" : "available"}`}
+            className={`cust-card ${hasBookings(t) ? "occupied" : "available"}`}
             onClick={() => {
               setSelectedTable(t);
               setPage("customer-table");
@@ -64,10 +69,10 @@ export default function CustomerHome({ setPage, setSelectedTable }) {
             <div className="cust-table-id">餐桌 {t}</div>
             <div
               className={`cust-status ${
-                isFullyBooked(t) ? "occupied" : "available"
+                hasBookings(t) ? "occupied" : "available"
               }`}
             >
-              {isFullyBooked(t) ? "已预订" : "可用"}
+              {hasBookings(t) ? "已预订" : "可用"}
             </div>
           </div>
         ))}
