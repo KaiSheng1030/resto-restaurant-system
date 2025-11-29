@@ -2,28 +2,126 @@ import React, { useState, useEffect } from "react";
 import { createBooking, getTables } from "../../api";
 import "../../customer.css";
 
-export default function CustomerReserve({ setToast, setPage, selectedTable }) {
+export default function CustomerReserve({ setToast, setPage, selectedTable, lang = 'en' }) {
+  const t = {
+    en: {
+      title: "Table Reservation",
+      name: "Name",
+      phone: "Phone Number",
+      people: "Number of People",
+      tableNumber: "Table Number",
+      selectTable: "Please Select",
+      table: "Table",
+      autoSelected: "(Automatically selected Table",
+      timeSlot: "Time Slot",
+      selectTime: "Please Select Time Slot",
+      confirmBooking: "Confirm Booking",
+      fillAllFields: "Please fill in all fields!",
+      bookingSuccess: "Booking successful!",
+      bookingFailed: "Booking failed",
+      autoAssign: "Auto-assign best table",
+      assignedTable: "Assigned Table",
+      seats: "seats",
+      tableCapacityNote: "Only tables with sufficient capacity are shown"
+    },
+    zh: {
+      title: "餐桌预约",
+      name: "姓名",
+      phone: "手机号码",
+      people: "人数",
+      tableNumber: "餐桌编号",
+      selectTable: "请选择",
+      table: "餐桌",
+      autoSelected: "（已为你自动选择餐桌",
+      timeSlot: "时间段",
+      selectTime: "请选择时间段",
+      confirmBooking: "确认预约",
+      fillAllFields: "请填写所有字段！",
+      bookingSuccess: "预约成功！",
+      bookingFailed: "预约失败",
+      autoAssign: "自动分配最合适的餐桌",
+      assignedTable: "已分配餐桌",
+      seats: "个座位",
+      tableCapacityNote: "仅显示容量足够的餐桌"
+    }
+  };
+
+  const safeToast = setToast || ((msg) => console.log("[Toast]", msg));
   const [tables, setTables] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [assignedTable, setAssignedTable] = useState(null);
+  const [recommendedTable, setRecommendedTable] = useState(null);
 
   useEffect(() => {
     getTables().then((res) => setTables(res.data || []));
   }, []);
 
+  useEffect(() => {
+    const loadBookings = async () => {
+      try {
+        const { getBookings } = await import("../../api");
+        const res = await getBookings();
+        setBookings(res.data || []);
+      } catch (err) {
+        console.log("Failed to load bookings");
+      }
+    };
+    loadBookings();
+  }, []);
+
   const [form, setForm] = useState({
     name: "",
     people: "",
-    table: selectedTable || "",
+    table: "",
     time: "",
     phone: "",
   });
-  const [assignedTable, setAssignedTable] = useState(null);
 
   const change = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  // Calculate recommended table when people and time are filled
+  useEffect(() => {
+    if (form.people && form.time && tables.length > 0) {
+      const peopleNum = Number(form.people);
+      const timeStr = form.time;
+      
+      // Find occupied tables at this time
+      const occupiedAtTime = bookings
+        .filter(b => b.time === timeStr)
+        .map(b => Number(b.table));
+      
+      // Find available tables that fit the party size
+      const candidates = tables
+        .filter(tbl => {
+          const tableId = typeof tbl === 'object' ? tbl.id : tbl;
+          const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
+          return capacity >= peopleNum && !occupiedAtTime.includes(tableId);
+        })
+        .sort((a, b) => {
+          const capA = typeof a === 'object' ? a.capacity : 4;
+          const capB = typeof b === 'object' ? b.capacity : 4;
+          const idA = typeof a === 'object' ? a.id : a;
+          const idB = typeof b === 'object' ? b.id : b;
+          return capA - capB || idA - idB;
+        });
+      
+      if (candidates.length > 0) {
+        const best = candidates[0];
+        const tableId = typeof best === 'object' ? best.id : best;
+        const capacity = typeof best === 'object' ? best.capacity : 4;
+        setRecommendedTable({ id: tableId, capacity });
+      } else {
+        setRecommendedTable(null);
+      }
+    } else {
+      setRecommendedTable(null);
+    }
+  }, [form.people, form.time, tables, bookings]);
+
   const submit = async () => {
     if (!form.name || !form.people || !form.time) {
-      setToast("请填写所有字段！");
+      safeToast(t[lang].fillAllFields);
       return;
     }
 
@@ -32,30 +130,44 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
         name: form.name,
         people: form.people,
         time: form.time,
-        ...(form.table && { table: form.table }),
-        ...(form.phone && { phone: form.phone })
+        phone: form.phone
       };
+      if (form.table) payload.table = form.table;
+
       const res = await createBooking(payload);
-      const tableId = res.data?.table;
-      setAssignedTable(tableId);
-      setToast(tableId ? `预约成功！已为您分配餐桌 ${tableId}` : "预约成功！");
-      setTimeout(() => {
-        setPage("customer");
-      }, 2000);
+      const table = res.data?.table;
+      if (table) setAssignedTable(table);
+      safeToast(t[lang].bookingSuccess + (table ? ` - ${t[lang].assignedTable} ${table}` : ""));
+      setTimeout(() => setPage("customer"), 2000);
     } catch (err) {
-      setToast(err.response?.data?.error || "预约失败");
+      safeToast(err.response?.data?.error || t[lang].bookingFailed);
     }
   };
 
   return (
     <div className="cust-container fade-in">
-      <h1 className="cust-title">餐桌预约</h1>
+      <h1 className="cust-title">{t[lang].title}</h1>
+
+      {assignedTable && (
+        <div style={{
+          background: '#d4edda',
+          border: '1px solid #c3e6cb',
+          color: '#155724',
+          padding: '12px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          textAlign: 'center',
+          fontSize: '1.1em'
+        }}>
+          ✓ {t[lang].assignedTable}: {assignedTable}
+        </div>
+      )}
 
       <div className="cust-form-box">
         
         {/* NAME */}
         <div className="cust-field">
-          <label>姓名</label>
+          <label>{t[lang].name}</label>
           <input
             className="cust-input"
             name="name"
@@ -66,11 +178,10 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
 
         {/* PHONE */}
         <div className="cust-field">
-          <label>手机号码（可选）</label>
+          <label>{t[lang].phone}</label>
           <input
             className="cust-input"
             name="phone"
-            placeholder="请输入手机号码"
             value={form.phone}
             onChange={change}
           />
@@ -78,7 +189,7 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
 
         {/* PEOPLE */}
         <div className="cust-field">
-          <label>人数</label>
+          <label>{t[lang].people}</label>
           <input
             className="cust-input"
             name="people"
@@ -88,38 +199,16 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
           />
         </div>
 
-        {/* TABLE (动态) */}
-        <div className="cust-field">
-          <label>餐桌编号（可选）</label>
-          <select
-            className="cust-input"
-            name="table"
-            value={form.table}
-            onChange={change}
-          >
-            <option value="">自动分配最合适的餐桌</option>
-            {tables.map((t) => (
-              <option key={t.id} value={t.id}>
-                餐桌 {t.id} ({t.capacity}人座)
-              </option>
-            ))}
-          </select>
-
-          {selectedTable && (
-            <div className="cust-tip">（已为你自动选择餐桌 {selectedTable}）</div>
-          )}
-        </div>
-
         {/* TIME */}
         <div className="cust-field">
-          <label>时间段</label>
+          <label>{t[lang].timeSlot}</label>
           <select
             className="cust-input"
             name="time"
             value={form.time}
             onChange={change}
           >
-            <option value="">请选择时间段</option>
+            <option value="">{t[lang].selectTime}</option>
             {[
               "10:00 - 11:00",
               "11:00 - 12:00",
@@ -139,17 +228,63 @@ export default function CustomerReserve({ setToast, setPage, selectedTable }) {
           </select>
         </div>
 
+        {/* TABLE (动态) */}
+        <div className="cust-field">
+          <label>{t[lang].tableNumber}</label>
+          <select
+            className="cust-input"
+            name="table"
+            value={form.table}
+            onChange={change}
+          >
+            <option value="">{t[lang].autoAssign}</option>
+            {(tables || []).map((tbl) => {
+              const tableId = typeof tbl === 'object' ? tbl.id : tbl;
+              const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
+              const peopleNum = Number(form.people) || 0;
+              
+              // Only show tables that can accommodate the party size
+              if (peopleNum > 0 && capacity < peopleNum) {
+                return null;
+              }
+              
+              return (
+                <option key={tableId} value={tableId}>
+                  {t[lang].table} {tableId}
+                </option>
+              );
+            })}
+          </select>
+          
+          {form.people && Number(form.people) > 0 && (
+            <div style={{
+              marginTop: '6px',
+              fontSize: '0.85em',
+              color: '#6b7280',
+              fontStyle: 'italic'
+            }}>
+              ℹ️ {t[lang].tableCapacityNote}
+            </div>
+          )}
+          
+          {recommendedTable && !form.table && (
+            <div className="cust-tip" style={{
+              marginTop: '8px',
+              padding: '8px 12px',
+              background: '#e7f3ff',
+              border: '1px solid #b3d9ff',
+              borderRadius: '6px',
+              fontSize: '0.9em',
+              color: '#0066cc'
+            }}>
+              ({t[lang].autoAssign}: {t[lang].table} {recommendedTable.id} - {recommendedTable.capacity} {t[lang].seats})
+            </div>
+          )}
+        </div>
+
         <button className="cust-primary-btn" onClick={submit}>
-          确认预约
+          {t[lang].confirmBooking}
         </button>
-
-        {/* SUCCESS MESSAGE */}
-        {assignedTable && (
-          <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#e8f5e9', borderRadius: '8px', fontSize: '16px', color: '#2e7d32', textAlign: 'center' }}>
-            ✓ 已为您分配餐桌 {assignedTable}
-          </div>
-        )}
-
       </div>
     </div>
   );

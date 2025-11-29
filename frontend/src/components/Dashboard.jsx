@@ -3,7 +3,26 @@ import { getBookings } from "../api";
 import Tables from "./Tables";
 import Charts from "./Charts";
 
-export default function Dashboard() {
+export default function Dashboard({ lang = 'en' }) {
+  const t = {
+    en: {
+      bookingsToday: "Bookings Today",
+      availableTables: "Available Tables",
+      outOf: "Out of",
+      totalCustomers: "Total Customers",
+      tableStatus: "Table Status",
+      analytics: "Analytics"
+    },
+    zh: {
+      bookingsToday: "今日预订",
+      availableTables: "可用餐桌",
+      outOf: "总共",
+      totalCustomers: "总客人数",
+      tableStatus: "餐桌状态",
+      analytics: "分析"
+    }
+  };
+
   const [bookings, setBookings] = useState([]);
   const [tables, setTables] = useState([]);
 
@@ -42,28 +61,28 @@ export default function Dashboard() {
       <div className="dashboard-grid">
 
         <div className="dash-card animate-card">
-          <div className="dash-title">Bookings Today</div>
+          <div className="dash-title">{t[lang].bookingsToday}</div>
           <div className="dash-num">{stats.today}</div>
         </div>
 
         <div className="dash-card animate-card">
-          <div className="dash-title">Available Tables</div>
+          <div className="dash-title">{t[lang].availableTables}</div>
           <div className="dash-num">{stats.availableTables}</div>
-          <div className="dash-sub">Out of {tables.length}</div>
+          <div className="dash-sub">{t[lang].outOf} {tables.length}</div>
         </div>
 
         <div className="dash-card animate-card">
-          <div className="dash-title">Total Customers</div>
+          <div className="dash-title">{t[lang].totalCustomers}</div>
           <div className="dash-num">{stats.customers}</div>
         </div>
 
       </div>
 
-      <h2 className="section-title">Table Status</h2>
-      <Tables bookings={bookings} />
+      <h2 className="section-title">{t[lang].tableStatus}</h2>
+      <Tables bookings={bookings} lang={lang} />
 
-      <h2 className="section-title">Analytics</h2>
-      <Charts bookings={bookings} />
+      <h2 className="section-title">{t[lang].analytics}</h2>
+      <Charts bookings={bookings} lang={lang} />
     </div>
   );
 }

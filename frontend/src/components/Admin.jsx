@@ -3,7 +3,32 @@ import { getBookings, cancelBooking, updateBooking } from "../api";
 import ConfirmDialog from "./ConfirmDialog";
 import EditDialog from "./EditDialog";
 
-export default function Admin({ setToast }) {
+export default function Admin({ setToast, lang = 'en' }) {
+  const t = {
+    en: {
+      title: "Reservation List",
+      searchPlaceholder: "Search bookings...",
+      noMatching: "No matching reservations.",
+      people: "people",
+      table: "Table",
+      edit: "Edit",
+      cancel: "Cancel",
+      bookingCanceled: "Booking canceled!",
+      bookingUpdated: "Booking updated!"
+    },
+    zh: {
+      title: "预订列表",
+      searchPlaceholder: "搜索预订...",
+      noMatching: "没有匹配的预订。",
+      people: "人",
+      table: "餐桌",
+      edit: "编辑",
+      cancel: "取消",
+      bookingCanceled: "预订已取消！",
+      bookingUpdated: "预订已更新！"
+    }
+  };
+
   const [bookings, setBookings] = useState([]);
   const [search, setSearch] = useState("");
   const [confirmId, setConfirmId] = useState(null);
@@ -36,20 +61,20 @@ export default function Admin({ setToast }) {
   // Cancel booking
   const handleCancel = async (id) => {
     await cancelBooking(id);
-    setToast("Booking canceled!");
+    setToast(t[lang].bookingCanceled);
     load();
   };
 
   return (
     <div className="fade-in">
-      <h2>Reservation List</h2>
+      <h2>{t[lang].title}</h2>
 
       {/* Search bar (beautiful version) */}
       <div className="search-wrapper">
         <span className="search-icon">🔍</span>
         <input
           type="text"
-          placeholder="Search bookings..."
+          placeholder={t[lang].searchPlaceholder}
           className="search-box"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -58,7 +83,7 @@ export default function Admin({ setToast }) {
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <p className="empty">No matching reservations.</p>
+        <p className="empty">{t[lang].noMatching}</p>
       )}
 
       {/* Booking list */}
@@ -67,18 +92,18 @@ export default function Admin({ setToast }) {
           <div className="booking-info">
             <span className="booking-name">{b.name}</span>
             <span className="booking-meta">
-              {b.people} people • Table {b.table}
+              {b.people} {t[lang].people} • {t[lang].table} {b.table}
             </span>
             <span className="booking-meta">{b.time}</span>
           </div>
 
           <div className="booking-actions">
             <button className="mini-btn" onClick={() => setEditData(b)}>
-              Edit
+              {t[lang].edit}
             </button>
 
             <button className="danger-btn" onClick={() => setConfirmId(b.id)}>
-              Cancel
+              {t[lang].cancel}
             </button>
           </div>
         </div>
@@ -92,6 +117,7 @@ export default function Admin({ setToast }) {
             handleCancel(confirmId);
             setConfirmId(null);
           }}
+          lang={lang}
         />
       )}
 
@@ -102,10 +128,11 @@ export default function Admin({ setToast }) {
           onCancel={() => setEditData(null)}
           onSave={async (newData) => {
             await updateBooking(editData.id, newData);
-            setToast("Booking updated!");
+            setToast(t[lang].bookingUpdated);
             setEditData(null);
             load();
           }}
+          lang={lang}
         />
       )}
     </div>

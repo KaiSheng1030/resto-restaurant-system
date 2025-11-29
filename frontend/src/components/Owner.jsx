@@ -16,7 +16,64 @@ import CustomerHome from "./customer/CustomerHome";
 import CustomerTablePage from "./customer/CustomerTablePage";
 import CustomerReserve from "./customer/CustomerReserve";
 
-export default function Owner() {
+export default function Owner({ lang = 'en' }) {
+  const t = {
+    en: {
+      title: "Owner Panel Overview",
+      todayBookings: "Today's Bookings",
+      totalCustomers: "Total Customers",
+      tablesAvailable: "Tables Available",
+      tableManager: "Table Manager",
+      delete: "Delete",
+      addTable: "Add Table",
+      tableNumber: "Table number",
+      add: "Add",
+      customerLiveView: "Customer Live Table View",
+      allReservations: "All Reservations",
+      noReservations: "No reservations yet.",
+      people: "people",
+      table: "Table",
+      noPhone: "No phone",
+      edit: "Edit",
+      cancel: "Cancel",
+      tableAdded: "Table added successfully.",
+      failedAddTable: "Failed to add table.",
+      tableDeleted: "Table deleted.",
+      failedDeleteTable: "Failed to delete table.",
+      reservationUpdated: "Reservation updated.",
+      reservationCancelled: "Reservation cancelled.",
+      cancelReservation: "Cancel reservation for",
+      seats: "seats"
+    },
+    zh: {
+      title: "业主面板概览",
+      todayBookings: "今日预订",
+      totalCustomers: "总客人数",
+      tablesAvailable: "可用餐桌",
+      tableManager: "餐桌管理",
+      delete: "删除",
+      addTable: "添加餐桌",
+      tableNumber: "餐桌编号",
+      add: "添加",
+      customerLiveView: "客户实时餐桌视图",
+      allReservations: "所有预订",
+      noReservations: "暂无预订。",
+      people: "人",
+      table: "餐桌",
+      noPhone: "无电话",
+      edit: "编辑",
+      cancel: "取消",
+      tableAdded: "餐桌添加成功。",
+      failedAddTable: "添加餐桌失败。",
+      tableDeleted: "餐桌已删除。",
+      failedDeleteTable: "删除餐桌失败。",
+      reservationUpdated: "预订已更新。",
+      reservationCancelled: "预订已取消。",
+      cancelReservation: "取消预订",
+      seats: "个座位"
+    }
+  };
+
   const [bookings, setBookings] = useState([]);
   const [tables, setTables] = useState([]);
 
@@ -82,9 +139,9 @@ export default function Owner() {
       await addTable(Number(newTableNum));
       setNewTableNum("");
       loadTables();
-      setToast("Table added successfully.");
+      setToast(t[lang].tableAdded);
     } catch (err) {
-      setToast(err.response?.data?.error || "Failed to add table.");
+      setToast(err.response?.data?.error || t[lang].failedAddTable);
     }
   };
 
@@ -95,9 +152,9 @@ export default function Owner() {
     try {
       await deleteTable(num);
       loadTables();
-      setToast("Table deleted.");
+      setToast(t[lang].tableDeleted);
     } catch {
-      setToast("Failed to delete table.");
+      setToast(t[lang].failedDeleteTable);
     }
   };
 
@@ -107,59 +164,63 @@ export default function Owner() {
       {/* TOAST */}
       {toast && <div className="toast-box">{toast}</div>}
 
-      <h2>Owner Panel Overview</h2>
+      <h2>{t[lang].title}</h2>
 
       {/* DASHBOARD */}
       <div className="dashboard-grid" style={{ marginBottom: 20 }}>
         <div className="dash-card">
-          <div className="dash-title">Today's Bookings</div>
+          <div className="dash-title">{t[lang].todayBookings}</div>
           <div className="dash-num">{today}</div>
         </div>
         <div className="dash-card">
-          <div className="dash-title">Total Customers</div>
+          <div className="dash-title">{t[lang].totalCustomers}</div>
           <div className="dash-num">{customers}</div>
         </div>
         <div className="dash-card">
-          <div className="dash-title">Tables Available</div>
+          <div className="dash-title">{t[lang].tablesAvailable}</div>
           <div className="dash-num">{tables.length}</div>
         </div>
       </div>
 
       {/* TABLE MANAGER */}
-      <h3>Table Manager</h3>
+      <h3>{t[lang].tableManager}</h3>
       <div className="card" style={{ padding: 20, marginBottom: 30 }}>
         {/* TABLE LIST */}
         <div style={{ marginBottom: 15 }}>
-          {tables.map((t) => (
-            <div
-              key={t}
-              style={{
-                padding: "10px 14px",
-                background: "#f5f5f5",
-                borderRadius: 10,
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
-            >
-              <span>Table {t}</span>
-              <button
-                className="pill-btn btn-cancel"
-                style={{ padding: "6px 16px" }}
-                onClick={() => handleDeleteTable(t)}
+          {(tables || []).map((tbl) => {
+            const tableId = typeof tbl === 'object' ? tbl.id : tbl;
+            const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
+            return (
+              <div
+                key={tableId}
+                style={{
+                  padding: "10px 14px",
+                  background: "#f5f5f5",
+                  borderRadius: 10,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
               >
-                Delete
-              </button>
-            </div>
-          ))}
+                <span>{t[lang].table} {tableId} ({capacity} {t[lang].seats})</span>
+                <button
+                  className="pill-btn btn-cancel"
+                  style={{ padding: "6px 16px" }}
+                  onClick={() => handleDeleteTable(tableId)}
+                >
+                  {t[lang].delete}
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {/* ADD TABLE */}
-        <h4>Add Table</h4>
+        <h4>{t[lang].addTable}</h4>
         <div style={{ display: "flex", gap: 10 }}>
           <input
             type="number"
-            placeholder="Table number"
+            placeholder={t[lang].tableNumber}
             value={newTableNum}
             onChange={(e) => setNewTableNum(e.target.value)}
             style={{
@@ -174,22 +235,23 @@ export default function Owner() {
             onClick={handleAddTable}
             style={{ padding: "8px 18px" }}
           >
-            Add
+            {t[lang].add}
           </button>
         </div>
       </div>
 
       {/* CHARTS */}
-      <Charts bookings={bookings} />
+      <Charts bookings={bookings} lang={lang} />
 
       {/* CUSTOMER LIVE TABLE VIEW */}
-      <h3 style={{ marginTop: 40 }}>Customer Live Table View</h3>
+      <h3 style={{ marginTop: 40 }}>{t[lang].customerLiveView}</h3>
       <div className="card customer-live-card">
         <div className="customer-live-inner">
           {custPage === "home" && (
             <CustomerHome
               setPage={handleCustomerSetPage}
               setSelectedTable={setCustSelectedTable}
+              lang={lang}
             />
           )}
 
@@ -197,6 +259,7 @@ export default function Owner() {
             <CustomerTablePage
               tableId={custSelectedTable}
               setPage={handleCustomerSetPage}
+              lang={lang}
             />
           )}
 
@@ -205,26 +268,27 @@ export default function Owner() {
               selectedTable={custSelectedTable}
               setPage={handleCustomerSetPage}
               setToast={setToast}
+              lang={lang}
             />
           )}
         </div>
       </div>
 
       {/* ALL BOOKINGS */}
-      <h3 style={{ marginTop: 40 }}>All Reservations</h3>
+      <h3 style={{ marginTop: 40 }}>{t[lang].allReservations}</h3>
 
-      {bookings.length === 0 && <p className="empty">No reservations yet.</p>}
+      {bookings.length === 0 && <p className="empty">{t[lang].noReservations}</p>}
 
-      {bookings.map((b) => (
+      {(bookings || []).map((b) => (
         <div className="booking-card" key={b.id} style={{ position: "relative" }}>
           <div className="booking-info">
             <span className="booking-name">{b.name}</span>
             <span className="booking-meta">
-              {b.people} people • Table {b.table}
+              {b.people} {t[lang].people} • {t[lang].table} {b.table}
             </span>
             <span className="booking-meta">{b.time}</span>
             <span className="booking-meta">
-              📞 {b.phone?.trim() ? b.phone : "No phone"}
+              📞 {b.phone?.trim() ? b.phone : t[lang].noPhone}
             </span>
           </div>
 
@@ -233,14 +297,14 @@ export default function Owner() {
               className="pill-btn btn-edit"
               onClick={() => setEditData(b.id)}
             >
-              Edit
+              {t[lang].edit}
             </button>
 
             <button
               className="pill-btn btn-cancel"
               onClick={() => setConfirmData({ bookingId: b.id, name: b.name })}
             >
-              Cancel
+              {t[lang].cancel}
             </button>
           </div>
 
@@ -253,22 +317,24 @@ export default function Owner() {
                 await updateBooking(b.id, updated);
                 setEditData(null);
                 loadBookings();
-                setToast("Reservation updated.");
+                setToast(t[lang].reservationUpdated);
               }}
+              lang={lang}
             />
           )}
 
           {/* CONFIRM DELETE */}
           {confirmData?.bookingId === b.id && (
             <ConfirmDialog
-              message={`Cancel reservation for ${b.name}?`}
+              message={`${t[lang].cancelReservation} ${b.name}?`}
               onCancel={() => setConfirmData(null)}
               onConfirm={async () => {
                 await cancelBooking(b.id);
                 setConfirmData(null);
                 loadBookings();
-                setToast("Reservation cancelled.");
+                setToast(t[lang].reservationCancelled);
               }}
+              lang={lang}
             />
           )}
         </div>

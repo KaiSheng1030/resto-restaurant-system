@@ -4,7 +4,24 @@ import "../../customer.css";
 import "./TimeSlots.css";
 import MiniBack from "./MiniBack";
 
-export default function CustomerTablePage({ tableId, setPage }) {
+export default function CustomerTablePage({ tableId, setPage, lang = 'en' }) {
+  const t = {
+    en: {
+      title: "Table",
+      timeSchedule: "Time Schedule",
+      subtitle: "View hourly availability for this table",
+      reserved: "Reserved",
+      free: "Free"
+    },
+    zh: {
+      title: "餐桌",
+      timeSchedule: "时段表",
+      subtitle: "查看此桌每小时是否已被预订",
+      reserved: "已预订",
+      free: "空闲"
+    }
+  };
+
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
@@ -51,10 +68,10 @@ export default function CustomerTablePage({ tableId, setPage }) {
     <div className="cust-container fade-in">
 
       {/* ⭐ Apple 简洁返回按钮 */}
-      <MiniBack onBack={() => setPage("customer")} />
+      <MiniBack onBack={() => setPage("customer")} lang={lang} />
 
-      <h1 className="cust-title">餐桌 {tableId} 时段表</h1>
-      <p className="cust-subtitle">查看此桌每小时是否已被预订</p>
+      <h1 className="cust-title">{t[lang].title} {tableId} {t[lang].timeSchedule}</h1>
+      <p className="cust-subtitle">{t[lang].subtitle}</p>
 
       <div className="cust-timeslot-list">
         {timeSlots.map((slot) => (
@@ -66,7 +83,7 @@ export default function CustomerTablePage({ tableId, setPage }) {
                 getStatus(slot) === "reserved" ? "bad" : "good"
               }`}
             >
-              {getStatus(slot) === "reserved" ? "已预订" : "空闲"}
+              {getStatus(slot) === "reserved" ? t[lang].reserved : t[lang].free}
             </span>
           </div>
         ))}

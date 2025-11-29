@@ -25,13 +25,42 @@ ChartJS.register(
   Filler
 );
 
-export default function Charts({ bookings = [] }) {
-  const weeklyLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+export default function Charts({ bookings = [], lang = 'en' }) {
+  const t = {
+    en: {
+      weeklyBookings: "Weekly Bookings",
+      tableUsage: "Table Usage",
+      tableDistribution: "Table Distribution",
+      table: "Table",
+      mon: "Mon",
+      tue: "Tue",
+      wed: "Wed",
+      thu: "Thu",
+      fri: "Fri",
+      sat: "Sat",
+      sun: "Sun"
+    },
+    zh: {
+      weeklyBookings: "每周预订",
+      tableUsage: "餐桌使用率",
+      tableDistribution: "餐桌分布",
+      table: "餐桌",
+      mon: "周一",
+      tue: "周二",
+      wed: "周三",
+      thu: "周四",
+      fri: "周五",
+      sat: "周六",
+      sun: "周日"
+    }
+  };
+
+  const weeklyLabels = [t[lang].mon, t[lang].tue, t[lang].wed, t[lang].thu, t[lang].fri, t[lang].sat, t[lang].sun];
   const weeklyBookings = [3, 4, 6, 2, 5, 8, 3];
 
   const tables = [1, 2, 3, 4, 5];
   const tableCount = tables.map(
-    (id) => bookings.filter((b) => Number(b.table) === id).length
+    (tblId) => bookings.filter((b) => Number(b.table) === tblId).length
   );
 
   const isDark =
@@ -85,7 +114,7 @@ export default function Charts({ bookings = [] }) {
     labels: weeklyLabels,
     datasets: [
       {
-        label: "Weekly Bookings",
+        label: t[lang].weeklyBookings,
         data: weeklyBookings,
         borderColor: glow,
         backgroundColor: fill,
@@ -99,10 +128,10 @@ export default function Charts({ bookings = [] }) {
   };
 
   const barData = {
-    labels: tables.map((t) => `Table ${t}`),
+    labels: tables.map((tblId) => `${t[lang].table} ${tblId}`),
     datasets: [
       {
-        label: "Table Usage",
+        label: t[lang].tableUsage,
         data: tableCount,
         backgroundColor: glow,
         borderRadius: 14,
@@ -111,7 +140,7 @@ export default function Charts({ bookings = [] }) {
   };
 
   const pieData = {
-    labels: tables.map((t) => `Table ${t}`),
+    labels: tables.map((tblId) => `${t[lang].table} ${tblId}`),
     datasets: [
       {
         data: tableCount,
@@ -132,30 +161,37 @@ export default function Charts({ bookings = [] }) {
 
       {/* LINE */}
       <div className="card chart-card">
-        <h3 className="chart-title">Weekly Bookings</h3>
+        <h3 className="chart-title">{t[lang].weeklyBookings}</h3>
         <Line data={lineData} options={baseOptions} />
       </div>
 
       {/* BAR */}
       <div className="card chart-card">
-        <h3 className="chart-title">Table Usage</h3>
+        <h3 className="chart-title">{t[lang].tableUsage}</h3>
         <Bar data={barData} options={baseOptions} />
       </div>
 
       {/* PIE */}
       <div className="card chart-card">
-        <h3 className="chart-title">Table Distribution</h3>
+        <h3 className="chart-title">{t[lang].tableDistribution}</h3>
 
         {/* ⭐ 自定义横向 legend —— 永不换行 */}
         <div className="custom-legend">
-          <div><span className="legend-box" style={{ background: "#4ea3ff" }}></span> Table 1</div>
-          <div><span className="legend-box" style={{ background: "#ff9f40" }}></span> Table 2</div>
-          <div><span className="legend-box" style={{ background: "#4bc0c0" }}></span> Table 3</div>
-          <div><span className="legend-box" style={{ background: "#9966ff" }}></span> Table 4</div>
-          <div><span className="legend-box" style={{ background: "#ffcd56" }}></span> Table 5</div>
+          <div><span className="legend-box" style={{ background: "#4ea3ff" }}></span> {t[lang].table} 1</div>
+          <div><span className="legend-box" style={{ background: "#ff9f40" }}></span> {t[lang].table} 2</div>
+          <div><span className="legend-box" style={{ background: "#4bc0c0" }}></span> {t[lang].table} 3</div>
+          <div><span className="legend-box" style={{ background: "#9966ff" }}></span> {t[lang].table} 4</div>
+          <div><span className="legend-box" style={{ background: "#ffcd56" }}></span> {t[lang].table} 5</div>
         </div>
 
-        <Pie data={pieData} options={{ animation: baseOptions.animation, plugins: { legend: false } }} />
+        <div style={{ height: '220px' }}>
+          <Pie data={pieData} options={{ 
+            animation: baseOptions.animation, 
+            plugins: { legend: false },
+            maintainAspectRatio: true,
+            responsive: true
+          }} />
+        </div>
       </div>
 
     </div>

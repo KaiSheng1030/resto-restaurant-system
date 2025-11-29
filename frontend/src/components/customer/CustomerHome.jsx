@@ -1,16 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { getBookings } from "../../api";
+import { getBookings, getTables } from "../../api";
 import "../../customer.css";
 
-export default function CustomerHome({ setPage, setSelectedTable }) {
+export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' }) {
   const [bookings, setBookings] = useState([]);
   const [tables, setTables] = useState([]);
+  
+  const t = {
+    en: {
+      title: "Available Tables",
+      subtitle: "View real-time table availability",
+      table: "Table",
+      reserved: "Reserved",
+      available: "Available",
+      bookTable: "Book Table"
+    },
+    zh: {
+      title: "可用餐桌",
+      subtitle: "顾客可实时查看餐桌是否有人预订",
+      table: "餐桌",
+      reserved: "已预订",
+      available: "可用",
+      bookTable: "预约餐桌"
+    }
+  };
 
-  // ⭐ 从 localStorage 获取桌子表
+  // ⭐ 从 API 获取桌子表
   useEffect(() => {
-    const saved = localStorage.getItem("tables");
-    if (saved) setTables(JSON.parse(saved));
-    else setTables([1, 2, 3, 4, 5]); // default
+    getTables()
+      .then((res) => setTables(res.data || []))
+      .catch(() => setTables([1, 2, 3, 4, 5].map(id => ({ id, capacity: 4, available: true }))));
   }, []);
 
   useEffect(() => {
@@ -53,36 +72,39 @@ export default function CustomerHome({ setPage, setSelectedTable }) {
 
   return (
     <div className="cust-container">
-      <h1 className="cust-title">可用餐桌</h1>
-      <p className="cust-subtitle">顾客可实时查看餐桌是否有人预订</p>
+      <h1 className="cust-title">{t[lang].title}</h1>
+      <p className="cust-subtitle">{t[lang].subtitle}</p>
 
       <div className="cust-table-grid">
-        {tables.map((t) => (
-          <div
-            key={t}
-            className={`cust-card ${hasBookings(t) ? "occupied" : "available"}`}
-            onClick={() => {
-              setSelectedTable(t);
-              setPage("customer-table");
-            }}
-          >
-            <div className="cust-table-id">餐桌 {t}</div>
+        {(tables || []).map((table) => {
+          const tableId = typeof table === 'object' ? table.id : table;
+          return (
             <div
-              className={`cust-status ${
-                hasBookings(t) ? "occupied" : "available"
-              }`}
+              key={tableId}
+              className={`cust-card ${hasBookings(tableId) ? "occupied" : "available"}`}
+              onClick={() => {
+                setSelectedTable(tableId);
+                setPage("customer-table");
+              }}
             >
-              {hasBookings(t) ? "已预订" : "可用"}
+              <div className="cust-table-id">{t[lang].table} {tableId}</div>
+              <div
+                className={`cust-status ${
+                  hasBookings(tableId) ? "occupied" : "available"
+                }`}
+              >
+                {hasBookings(tableId) ? t[lang].reserved : t[lang].available}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <button
         className="cust-primary-btn"
         onClick={() => setPage("customer-reserve")}
       >
-        预约餐桌
+        {t[lang].bookTable}
       </button>
     </div>
   );

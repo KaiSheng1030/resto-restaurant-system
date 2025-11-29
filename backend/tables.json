@@ -1,7 +1,27 @@
-[  
-  { "id": 1, "capacity": 2, "available": true },
-  { "id": 2, "capacity": 2, "available": true },
-  { "id": 3, "capacity": 4, "available": true },
-  { "id": 4, "capacity": 4, "available": true },
-  { "id": 5, "capacity": 6, "available": true }
+[
+  {
+    "id": 1,
+    "capacity": 2,
+    "available": true
+  },
+  {
+    "id": 2,
+    "capacity": 2,
+    "available": true
+  },
+  {
+    "id": 3,
+    "capacity": 4,
+    "available": true
+  },
+  {
+    "id": 4,
+    "capacity": 4,
+    "available": true
+  },
+  {
+    "id": 5,
+    "capacity": 6,
+    "available": true
+  }
 ]

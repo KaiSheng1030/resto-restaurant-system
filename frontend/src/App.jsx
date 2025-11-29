@@ -18,45 +18,143 @@ export default function App() {
   const [page, setPage] = useState("dashboard");
   const [toast, setToast] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
+  const [lang, setLang] = useState(localStorage.getItem('lang') || 'en');
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  
+  // Save language preference
+  const changeLang = (newLang) => {
+    setLang(newLang);
+    localStorage.setItem('lang', newLang);
+  };
 
-  // Topbar Page Names (Booking Form removed)
+  // Translations
+  const t = {
+    en: {
+      brand: "Resto",
+      reservation: "+ Reservation",
+      dashboard: "Manager Panel",
+      admin: "Admin Panel",
+      customer: "Customer View",
+      reserve: "Reserve Table",
+      owner: "Owner Panel",
+      table: "Table",
+      details: "Details"
+    },
+    zh: {
+      brand: "餐厅",
+      reservation: "+ 预约",
+      dashboard: "经理面板",
+      admin: "管理员面板",
+      customer: "顾客视图",
+      reserve: "预约餐桌",
+      owner: "老板面板",
+      table: "餐桌",
+      details: "详情"
+    }
+  };
+
+  // Topbar Page Names
   const getTopbarTitle = () => {
-    if (page === "customer-table") return `Table ${selectedTable} Details`;
+    if (page === "customer-table") return `${t[lang].table} ${selectedTable} ${t[lang].details}`;
 
     switch (page) {
       case "dashboard":
-        return "Manager Panel";
+        return t[lang].dashboard;
       case "admin":
-        return "Admin Panel";
+        return t[lang].admin;
       case "customer":
-        return "Customer View";
+        return t[lang].customer;
       case "customer-reserve":
-        return "Reserve Table";
+        return t[lang].reserve;
       case "owner":
-        return "Owner Panel";
+        return t[lang].owner;
       default:
-        return "Resto";
+        return t[lang].brand;
     }
   };
 
   return (
     <div className="layout">
-      <Sidebar setPage={setPage} />
+      <Sidebar setPage={setPage} lang={lang} />
 
       <div className="content">
         {/* Top Bar */}
         <div className="topbar">
           <div className="topbar-left">
-            <h1 className="brand">🍽️ Resto</h1>
+            <h1 className="brand">🍽️ {t[lang].brand}</h1>
             <div className="top-sub">{getTopbarTitle()}</div>
           </div>
 
           <div className="topbar-right">
             <ThemeToggle />
 
+            {/* Language Dropdown */}
+            <div style={{ position: 'relative', marginRight: '10px' }}>
+              <button 
+                className="mini-btn" 
+                onClick={() => setShowLangMenu(!showLangMenu)}
+              >
+                {lang === 'en' ? 'English' : '中文'}
+              </button>
+              
+              {showLangMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '110%',
+                  right: 0,
+                  background: 'var(--card-bg)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  minWidth: '150px',
+                  zIndex: 1000,
+                  overflow: 'hidden'
+                }}>
+                  <button
+                    onClick={() => {
+                      changeLang('en');
+                      setShowLangMenu(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: 'none',
+                      background: lang === 'en' ? 'var(--accent)' : 'transparent',
+                      color: lang === 'en' ? 'white' : 'var(--text)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      fontSize: '14px',
+                      fontWeight: lang === 'en' ? '600' : '400'
+                    }}
+                  >
+                    English
+                  </button>
+                  <button
+                    onClick={() => {
+                      changeLang('zh');
+                      setShowLangMenu(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: 'none',
+                      background: lang === 'zh' ? 'var(--accent)' : 'transparent',
+                      color: lang === 'zh' ? 'white' : 'var(--text)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      fontSize: '14px',
+                      fontWeight: lang === 'zh' ? '600' : '400'
+                    }}
+                  >
+                    中文
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* All reservation actions go to Customer View */}
             <button className="mini-btn" onClick={() => setPage("customer")}>
-              + Reservation
+              {t[lang].reservation}
             </button>
           </div>
         </div>
@@ -67,6 +165,7 @@ export default function App() {
             <CustomerHome
               setPage={setPage}
               setSelectedTable={setSelectedTable}
+              lang={lang}
             />
           )}
 
@@ -74,6 +173,7 @@ export default function App() {
             <CustomerTablePage
               tableId={selectedTable}
               setPage={setPage}
+              lang={lang}
             />
           )}
 
@@ -82,12 +182,13 @@ export default function App() {
               selectedTable={selectedTable}
               setToast={setToast}
               setPage={setPage}
+              lang={lang}
             />
           )}
 
-          {page === "dashboard" && <Dashboard />}
-          {page === "admin" && <Admin setToast={setToast} />}
-          {page === "owner" && <Owner />}
+          {page === "dashboard" && <Dashboard lang={lang} />}
+          {page === "admin" && <Admin setToast={setToast} lang={lang} />}
+          {page === "owner" && <Owner lang={lang} />}
         </main>
       </div>
 
