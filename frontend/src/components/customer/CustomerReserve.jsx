@@ -3,7 +3,13 @@ import { createBooking, getTables } from "../../api";
 import "../../customer.css";
 import MiniBack from "./MiniBack";
 
-export default function CustomerReserve({ setToast, setPage, selectedTable, lang = 'en' }) {
+export default function CustomerReserve({
+  setToast,
+  setPage,
+  selectedTable,
+  lang = "en",
+  userPhone,       // ⭐ 接收从登入传过来的手机号码
+}) {
   const t = {
     en: {
       title: "Table Reservation",
@@ -23,7 +29,7 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
       autoAssign: "Auto-assign best table",
       assignedTable: "Assigned Table",
       seats: "seats",
-      tableCapacityNote: "Only tables with sufficient capacity are shown"
+      tableCapacityNote: "Only tables with sufficient capacity are shown",
     },
     zh: {
       title: "餐桌预约",
@@ -43,8 +49,8 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
       autoAssign: "自动分配最合适的餐桌",
       assignedTable: "已分配餐桌",
       seats: "个座位",
-      tableCapacityNote: "仅显示容量足够的餐桌"
-    }
+      tableCapacityNote: "仅显示容量足够的餐桌",
+    },
   };
 
   const safeToast = setToast || ((msg) => console.log("[Toast]", msg));
@@ -70,47 +76,45 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
     loadBookings();
   }, []);
 
+  // ⭐ 自动填入 phone
   const [form, setForm] = useState({
     name: "",
     people: "",
     table: "",
     time: "",
-    phone: "",
+    phone: userPhone || "",     // ⭐ 自动填入登入使用者手机号码
   });
 
-  const change = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Calculate recommended table when people and time are filled
+  // Calculate recommended table
   useEffect(() => {
     if (form.people && form.time && tables.length > 0) {
       const peopleNum = Number(form.people);
       const timeStr = form.time;
-      
-      // Find occupied tables at this time
+
       const occupiedAtTime = bookings
-        .filter(b => b.time === timeStr)
-        .map(b => Number(b.table));
-      
-      // Find available tables that fit the party size
+        .filter((b) => b.time === timeStr)
+        .map((b) => Number(b.table));
+
       const candidates = tables
-        .filter(tbl => {
-          const tableId = typeof tbl === 'object' ? tbl.id : tbl;
-          const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
+        .filter((tbl) => {
+          const tableId = typeof tbl === "object" ? tbl.id : tbl;
+          const capacity = typeof tbl === "object" ? tbl.capacity : 4;
           return capacity >= peopleNum && !occupiedAtTime.includes(tableId);
         })
         .sort((a, b) => {
-          const capA = typeof a === 'object' ? a.capacity : 4;
-          const capB = typeof b === 'object' ? b.capacity : 4;
-          const idA = typeof a === 'object' ? a.id : a;
-          const idB = typeof b === 'object' ? b.id : b;
+          const capA = typeof a === "object" ? a.capacity : 4;
+          const capB = typeof b === "object" ? b.capacity : 4;
+          const idA = typeof a === "object" ? a.id : a;
+          const idB = typeof b === "object" ? b.id : b;
           return capA - capB || idA - idB;
         });
-      
+
       if (candidates.length > 0) {
         const best = candidates[0];
-        const tableId = typeof best === 'object' ? best.id : best;
-        const capacity = typeof best === 'object' ? best.capacity : 4;
+        const tableId = typeof best === "object" ? best.id : best;
+        const capacity = typeof best === "object" ? best.capacity : 4;
         setRecommendedTable({ id: tableId, capacity });
       } else {
         setRecommendedTable(null);
@@ -131,13 +135,14 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
         name: form.name,
         people: form.people,
         time: form.time,
-        phone: form.phone
+        phone: form.phone,
       };
       if (form.table) payload.table = form.table;
 
       const res = await createBooking(payload);
       const table = res.data?.table;
       if (table) setAssignedTable(table);
+
       safeToast(t[lang].bookingSuccess + (table ? ` - ${t[lang].assignedTable} ${table}` : ""));
       setTimeout(() => setPage("customer"), 2000);
     } catch (err) {
@@ -148,38 +153,34 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
   return (
     <div className="cust-container fade-in">
       <MiniBack onBack={() => setPage("customer")} lang={lang} />
-      
+
       <h1 className="cust-title">{t[lang].title}</h1>
 
       {assignedTable && (
-        <div style={{
-          background: '#d4edda',
-          border: '1px solid #c3e6cb',
-          color: '#155724',
-          padding: '12px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          textAlign: 'center',
-          fontSize: '1.1em'
-        }}>
+        <div
+          style={{
+            background: "#d4edda",
+            border: "1px solid #c3e6cb",
+            color: "#155724",
+            padding: "12px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            textAlign: "center",
+            fontSize: "1.1em",
+          }}
+        >
           ✓ {t[lang].assignedTable}: {assignedTable}
         </div>
       )}
 
       <div className="cust-form-box">
-        
         {/* NAME */}
         <div className="cust-field">
           <label>{t[lang].name}</label>
-          <input
-            className="cust-input"
-            name="name"
-            value={form.name}
-            onChange={change}
-          />
+          <input className="cust-input" name="name" value={form.name} onChange={change} />
         </div>
 
-        {/* PHONE */}
+        {/* PHONE — now auto-filled */}
         <div className="cust-field">
           <label>{t[lang].phone}</label>
           <input
@@ -205,12 +206,7 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
         {/* TIME */}
         <div className="cust-field">
           <label>{t[lang].timeSlot}</label>
-          <select
-            className="cust-input"
-            name="time"
-            value={form.time}
-            onChange={change}
-          >
+          <select className="cust-input" name="time" value={form.time} onChange={change}>
             <option value="">{t[lang].selectTime}</option>
             {[
               "10:00 - 11:00",
@@ -231,26 +227,19 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
           </select>
         </div>
 
-        {/* TABLE (动态) */}
+        {/* TABLE */}
         <div className="cust-field">
           <label>{t[lang].tableNumber}</label>
-          <select
-            className="cust-input"
-            name="table"
-            value={form.table}
-            onChange={change}
-          >
+          <select className="cust-input" name="table" value={form.table} onChange={change}>
             <option value="">{t[lang].autoAssign}</option>
-            {(tables || []).map((tbl) => {
-              const tableId = typeof tbl === 'object' ? tbl.id : tbl;
-              const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
+
+            {tables.map((tbl) => {
+              const tableId = typeof tbl === "object" ? tbl.id : tbl;
+              const capacity = typeof tbl === "object" ? tbl.capacity : 4;
               const peopleNum = Number(form.people) || 0;
-              
-              // Only show tables that can accommodate the party size
-              if (peopleNum > 0 && capacity < peopleNum) {
-                return null;
-              }
-              
+
+              if (peopleNum > 0 && capacity < peopleNum) return null;
+
               return (
                 <option key={tableId} value={tableId}>
                   {t[lang].table} {tableId}
@@ -258,29 +247,35 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
               );
             })}
           </select>
-          
+
           {form.people && Number(form.people) > 0 && (
-            <div style={{
-              marginTop: '6px',
-              fontSize: '0.85em',
-              color: '#6b7280',
-              fontStyle: 'italic'
-            }}>
+            <div
+              style={{
+                marginTop: "6px",
+                fontSize: "0.85em",
+                color: "#6b7280",
+                fontStyle: "italic",
+              }}
+            >
               ℹ️ {t[lang].tableCapacityNote}
             </div>
           )}
-          
+
           {recommendedTable && !form.table && (
-            <div className="cust-tip" style={{
-              marginTop: '8px',
-              padding: '8px 12px',
-              background: '#e7f3ff',
-              border: '1px solid #b3d9ff',
-              borderRadius: '6px',
-              fontSize: '0.9em',
-              color: '#0066cc'
-            }}>
-              ({t[lang].autoAssign}: {t[lang].table} {recommendedTable.id} - {recommendedTable.capacity} {t[lang].seats})
+            <div
+              className="cust-tip"
+              style={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                background: "#e7f3ff",
+                border: "1px solid #b3d9ff",
+                borderRadius: "6px",
+                fontSize: "0.9em",
+                color: "#0066cc",
+              }}
+            >
+              ({t[lang].autoAssign}: {t[lang].table} {recommendedTable.id} -{" "}
+              {recommendedTable.capacity} {t[lang].seats})
             </div>
           )}
         </div>

@@ -1018,3 +1018,178 @@ input, button {
   border: none;
   cursor: pointer;
 }
+/* ======================================================
+   🌞 LIGHT THEME VARIABLES (Default)
+====================================================== */
+:root {
+  --bg: #f5f6fa;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --subtext: #475569;
+
+  --primary: #2563eb;
+
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+
+  --btn-primary: #0f172a;
+  --btn-primary-text: white;
+
+  --btn-secondary: #f1f5f9;
+  --btn-secondary-text: #334155;
+
+  --border: #e2e8f0;
+}
+
+/* ======================================================
+   🌙 DARK THEME VARIABLES
+====================================================== */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --text: #f1f5f9;
+  --subtext: #94a3b8;
+
+  --primary: #3b82f6;
+
+  --input-bg: #1e293b;
+  --input-border: #334155;
+
+  --btn-primary: #2563eb;
+  --btn-primary-text: white;
+
+  --btn-secondary: #475569;
+  --btn-secondary-text: white;
+
+  --border: #334155;
+}
+
+/* ======================================================
+   🌙 GLOBAL BACKGROUND
+====================================================== */
+body,
+#root {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* ======================================================
+   🧊 GLOBAL CARD STYLE (Safe)
+   ❗ Removed owner-page from here → NO OUTLINE FIX
+====================================================== */
+.card,
+.login-card,
+.customer-live-card,
+.booking-card,
+.table-manager-card {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* Titles */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text) !important;
+}
+
+/* Text */
+p, span, label {
+  color: var(--subtext) !important;
+}
+
+/* ======================================================
+   ✏️ INPUTS
+====================================================== */
+input,
+select,
+textarea {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--input-border) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--subtext) !important;
+}
+
+/* ======================================================
+   🔘 BUTTONS
+====================================================== */
+button.login-btn,
+.pill-btn.btn-edit,
+.btn-primary {
+  background: var(--btn-primary) !important;
+  color: var(--btn-primary-text) !important;
+  border: none !important;
+}
+
+.pill-btn.btn-cancel,
+.btn-secondary {
+  background: var(--btn-secondary) !important;
+  color: var(--btn-secondary-text) !important;
+}
+
+/* ======================================================
+   📱 PHONE INPUT FIX
+====================================================== */
+.react-tel-input .form-control {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--input-border) !important;
+}
+
+.react-tel-input .flag-dropdown {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--input-border) !important;
+}
+
+.react-tel-input .country-list {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* ======================================================
+   🍏 NO UGLY BLUE OUTLINE (Apple Style)
+====================================================== */
+*:focus,
+*:focus-visible,
+*:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0 !important;
+}
+
+button:focus,
+button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ======================================================
+   🍎 FIX: OWNER PAGE NO BORDER (VERY IMPORTANT)
+   Prevent outline from app.css
+====================================================== */
+.owner-page {
+  border: none !important;
+  box-shadow: none !important;
+  background: var(--bg) !important;
+}

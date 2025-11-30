@@ -29,11 +29,10 @@ export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' })
   useEffect(() => {
     getTables()
       .then((res) => setTables(res.data || []))
-      .catch(() => setTables([1, 2, 3, 4, 5].map(id => ({ id, capacity: 4, available: true }))));
+      .catch(() => setTables([1, 2, 3, 4, 5].map(id => ({ id, capacity: 4, available: true })))); 
   }, []);
 
   useEffect(() => {
-    // ⭐ 拉取预订数据
     const load = async () => {
       try {
         const res = await getBookings();
@@ -56,18 +55,13 @@ export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' })
     "19:00 - 20:00", "20:00 - 21:00", "21:00 - 22:00",
   ];
 
-  // ⭐ 判断桌子是否有任何预订
-  const hasBookings = (id) => {
-    return bookings.some((b) => Number(b.table) === id);
-  };
-
-  // ⭐ 判断是否整天满
+  // ⭐ 判断是否整天满（你想要的逻辑）
   const isFullyBooked = (id) => {
-    const booked = bookings
+    const bookedTimes = bookings
       .filter((b) => Number(b.table) === id)
       .map((b) => b.time);
 
-    return booked.length === timeSlots.length;
+    return bookedTimes.length === timeSlots.length; // 🔥 所有时段都被订 = FULL
   };
 
   return (
@@ -78,22 +72,24 @@ export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' })
       <div className="cust-table-grid">
         {(tables || []).map((table) => {
           const tableId = typeof table === 'object' ? table.id : table;
+
           return (
             <div
               key={tableId}
-              className={`cust-card ${hasBookings(tableId) ? "occupied" : "available"}`}
+              className={`cust-card ${isFullyBooked(tableId) ? "occupied" : "available"}`}
               onClick={() => {
                 setSelectedTable(tableId);
                 setPage("customer-table");
               }}
             >
               <div className="cust-table-id">{t[lang].table} {tableId}</div>
+
               <div
                 className={`cust-status ${
-                  hasBookings(tableId) ? "occupied" : "available"
+                  isFullyBooked(tableId) ? "occupied" : "available"
                 }`}
               >
-                {hasBookings(tableId) ? t[lang].reserved : t[lang].available}
+                {isFullyBooked(tableId) ? t[lang].reserved : t[lang].available}
               </div>
             </div>
           );

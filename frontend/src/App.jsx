@@ -5,6 +5,7 @@ import Dashboard from "./components/Dashboard";
 import CustomerHome from "./components/customer/CustomerHome";
 import CustomerTablePage from "./components/customer/CustomerTablePage";
 import CustomerReserve from "./components/customer/CustomerReserve";
+import CustomerLogin from "./components/customer/CustomerLogin";
 
 import Admin from "./components/Admin";
 import Owner from "./components/Owner";
@@ -15,19 +16,26 @@ import ThemeToggle from "./components/ThemeToggle";
 import "./App.css";
 
 export default function App() {
-  const [page, setPage] = useState("dashboard");
+  // ⭐ Default page
+  const [page, setPage] = useState("login");
+
+  // ⭐ User role
+  const [userRole, setUserRole] = useState(""); // "customer" | "admin" | "owner"
+
   const [toast, setToast] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [lang, setLang] = useState(localStorage.getItem('lang') || 'en');
+
+  const [lang, setLang] = useState(localStorage.getItem("lang") || "en");
   const [showLangMenu, setShowLangMenu] = useState(false);
-  
-  // Save language preference
+
+  const [userPhone, setUserPhone] = useState("");
+
   const changeLang = (newLang) => {
     setLang(newLang);
-    localStorage.setItem('lang', newLang);
+    localStorage.setItem("lang", newLang);
   };
 
-  // Translations
+  // ⭐ Topbar title translations
   const t = {
     en: {
       brand: "Resto",
@@ -38,7 +46,7 @@ export default function App() {
       reserve: "Reserve Table",
       owner: "Owner Panel",
       table: "Table",
-      details: "Details"
+      details: "Details",
     },
     zh: {
       brand: "餐厅",
@@ -49,13 +57,13 @@ export default function App() {
       reserve: "预约餐桌",
       owner: "老板面板",
       table: "餐桌",
-      details: "详情"
-    }
+      details: "详情",
+    },
   };
 
-  // Topbar Page Names
   const getTopbarTitle = () => {
-    if (page === "customer-table") return `${t[lang].table} ${selectedTable} ${t[lang].details}`;
+    if (page === "customer-table")
+      return `${t[lang].table} ${selectedTable} ${t[lang].details}`;
 
     switch (page) {
       case "dashboard":
@@ -73,94 +81,94 @@ export default function App() {
     }
   };
 
+  const isLoginPage = page === "login";
+
   return (
     <div className="layout">
-      <Sidebar setPage={setPage} lang={lang} />
+
+      {/* ⭐ Login page hides sidebar */}
+      {!isLoginPage && (
+        <Sidebar setPage={setPage} lang={lang} userRole={userRole} />
+      )}
 
       <div className="content">
-        {/* Top Bar */}
-        <div className="topbar">
-          <div className="topbar-left">
-            <h1 className="brand">🍽️ {t[lang].brand}</h1>
-            <div className="top-sub">{getTopbarTitle()}</div>
-          </div>
 
-          <div className="topbar-right">
-            <ThemeToggle />
-
-            {/* Language Dropdown */}
-            <div style={{ position: 'relative', marginRight: '10px' }}>
-              <button 
-                className="mini-btn" 
-                onClick={() => setShowLangMenu(!showLangMenu)}
-              >
-                {lang === 'en' ? 'English' : '中文'}
-              </button>
-              
-              {showLangMenu && (
-                <div style={{
-                  position: 'absolute',
-                  top: '110%',
-                  right: 0,
-                  background: 'var(--card-bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  minWidth: '150px',
-                  zIndex: 1000,
-                  overflow: 'hidden'
-                }}>
-                  <button
-                    onClick={() => {
-                      changeLang('en');
-                      setShowLangMenu(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: 'none',
-                      background: lang === 'en' ? 'var(--accent)' : 'transparent',
-                      color: lang === 'en' ? 'white' : 'var(--text)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: lang === 'en' ? '600' : '400'
-                    }}
-                  >
-                    English
-                  </button>
-                  <button
-                    onClick={() => {
-                      changeLang('zh');
-                      setShowLangMenu(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: 'none',
-                      background: lang === 'zh' ? 'var(--accent)' : 'transparent',
-                      color: lang === 'zh' ? 'white' : 'var(--text)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: lang === 'zh' ? '600' : '400'
-                    }}
-                  >
-                    中文
-                  </button>
-                </div>
-              )}
+        {/* ⭐ Hide topbar on login */}
+        {!isLoginPage && (
+          <div className="topbar">
+            <div className="topbar-left">
+              <h1 className="brand">🍽️ {t[lang].brand}</h1>
+              <div className="top-sub">{getTopbarTitle()}</div>
             </div>
 
-            {/* All reservation actions go to Customer View */}
-            <button className="mini-btn" onClick={() => setPage("customer")}>
-              {t[lang].reservation}
-            </button>
-          </div>
-        </div>
+            <div className="topbar-right">
+              <ThemeToggle />
 
-        {/* Page Switch */}
+              <div style={{ position: "relative", marginRight: "10px" }}>
+                <button
+                  className="mini-btn"
+                  onClick={() => setShowLangMenu(!showLangMenu)}
+                >
+                  {lang === "en" ? "English" : "中文"}
+                </button>
+
+                {showLangMenu && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "110%",
+                      right: 0,
+                      background: "var(--card-bg)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      minWidth: "150px",
+                      zIndex: 1000,
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        changeLang("en");
+                        setShowLangMenu(false);
+                      }}
+                    >
+                      English
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        changeLang("zh");
+                        setShowLangMenu(false);
+                      }}
+                    >
+                      中文
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <button className="mini-btn" onClick={() => setPage("customer")}>
+                {t[lang].reservation}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ⭐ Page Switcher */}
         <main className="page-area fade-in">
+
+          {/* LOGIN PAGE */}
+          {page === "login" && (
+            <CustomerLogin
+              setPage={setPage}
+              setUserPhone={setUserPhone}
+              lang={lang}
+              changeLang={changeLang}
+              setUserRole={setUserRole}
+            />
+          )}
+
+          {/* CUSTOMER PAGES */}
           {page === "customer" && (
             <CustomerHome
               setPage={setPage}
@@ -180,15 +188,29 @@ export default function App() {
           {page === "customer-reserve" && (
             <CustomerReserve
               selectedTable={selectedTable}
-              setToast={setToast}
               setPage={setPage}
+              setToast={setToast}
               lang={lang}
+              userPhone={userPhone}
             />
           )}
 
-          {page === "dashboard" && <Dashboard lang={lang} />}
-          {page === "admin" && <Admin setToast={setToast} lang={lang} />}
-          {page === "owner" && <Owner lang={lang} />}
+          {/* ADMIN PANEL (admin + owner) */}
+          {page === "admin" &&
+            (userRole === "admin" || userRole === "owner") && (
+              <Admin setToast={setToast} lang={lang} />
+            )}
+
+          {/* OWNER PANEL (admin + owner) */}
+          {page === "owner" &&
+            (userRole === "admin" || userRole === "owner") && (
+              <Owner lang={lang} userRole={userRole} />
+            )}
+
+          {/* DASHBOARD (owner only) */}
+          {page === "dashboard" && userRole === "owner" && (
+            <Dashboard lang={lang} />
+          )}
         </main>
       </div>
 
