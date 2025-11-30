@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createBooking, getTables } from "../../api";
 import "../../customer.css";
+import MiniBack from "./MiniBack";
 
 export default function CustomerReserve({ setToast, setPage, selectedTable, lang = 'en' }) {
   const t = {
@@ -146,6 +147,8 @@ export default function CustomerReserve({ setToast, setPage, selectedTable, lang
 
   return (
     <div className="cust-container fade-in">
+      <MiniBack onBack={() => setPage("customer")} lang={lang} />
+      
       <h1 className="cust-title">{t[lang].title}</h1>
 
       {assignedTable && (

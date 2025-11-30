@@ -10,6 +10,7 @@ import {
 
 import ConfirmDialog from "./ConfirmDialog";
 import EditDialog from "./EditDialog";
+import Toast from "./Toast";
 
 import Charts from "./Charts";
 import CustomerHome from "./customer/CustomerHome";
@@ -27,6 +28,7 @@ export default function Owner({ lang = 'en' }) {
       delete: "Delete",
       addTable: "Add Table",
       tableNumber: "Table number",
+      capacity: "Capacity (seats)",
       add: "Add",
       customerLiveView: "Customer Live Table View",
       allReservations: "All Reservations",
@@ -54,6 +56,7 @@ export default function Owner({ lang = 'en' }) {
       delete: "删除",
       addTable: "添加餐桌",
       tableNumber: "餐桌编号",
+      capacity: "容量（座位）",
       add: "添加",
       customerLiveView: "客户实时餐桌视图",
       allReservations: "所有预订",
@@ -78,6 +81,7 @@ export default function Owner({ lang = 'en' }) {
   const [tables, setTables] = useState([]);
 
   const [newTableNum, setNewTableNum] = useState("");
+  const [newTableCapacity, setNewTableCapacity] = useState("");
   const [confirmData, setConfirmData] = useState(null);
   const [editData, setEditData] = useState(null);
   const [toast, setToast] = useState("");
@@ -133,15 +137,42 @@ export default function Owner({ lang = 'en' }) {
       ADD TABLE
   =============================== */
   const handleAddTable = async () => {
-    if (!newTableNum.trim()) return;
+    if (!newTableNum.trim()) {
+      const msg = lang === 'en' ? "❌ Please fill in table number" : "❌ 请填写餐桌编号";
+      setToast(msg);
+      return;
+    }
+    
+    if (!newTableCapacity.trim()) {
+      setToast(lang === 'en' ? "❌ Please fill in table capacity" : "❌ 请填写餐桌容量");
+      setTimeout(() => setToast(""), 3000);
+      return;
+    }
+
+    // Check if table number already exists
+    const tableNum = Number(newTableNum);
+    const tableExists = tables.some(tbl => {
+      const tableId = typeof tbl === 'object' ? tbl.id : tbl;
+      return tableId === tableNum;
+    });
+
+    if (tableExists) {
+      setToast(lang === 'en' ? "❌ Table number already exists" : "❌ 餐桌编号已存在");
+      setTimeout(() => setToast(""), 3000);
+      return;
+    }
 
     try {
-      await addTable(Number(newTableNum));
+      await addTable(tableNum, Number(newTableCapacity));
       setNewTableNum("");
+      setNewTableCapacity("");
       loadTables();
-      setToast(t[lang].tableAdded);
+      setToast(lang === 'en' ? "✅ Table added successfully!" : "✅ 餐桌添加成功！");
+      setTimeout(() => setToast(""), 3000);
     } catch (err) {
-      setToast(err.response?.data?.error || t[lang].failedAddTable);
+      const errorMsg = err.response?.data?.error || (lang === 'en' ? "Failed to add table" : "添加餐桌失败");
+      setToast(`❌ ${errorMsg}`);
+      setTimeout(() => setToast(""), 3000);
     }
   };
 
@@ -152,19 +183,21 @@ export default function Owner({ lang = 'en' }) {
     try {
       await deleteTable(num);
       loadTables();
-      setToast(t[lang].tableDeleted);
+      const msg = lang === 'en' ? `✅ Table ${num} deleted successfully!` : `✅ 餐桌 ${num} 已成功删除！`;
+      setToast(msg);
     } catch {
-      setToast(t[lang].failedDeleteTable);
+      const msg = lang === 'en' ? `❌ Failed to delete table ${num}` : `❌ 删除餐桌 ${num} 失败`;
+      setToast(msg);
     }
   };
 
   return (
-    <div className="fade-in owner-page">
+    <>
+      {/* TOAST - Fixed to screen */}
+      {toast && <Toast message={toast} close={() => setToast("")} />}
 
-      {/* TOAST */}
-      {toast && <div className="toast-box">{toast}</div>}
-
-      <h2>{t[lang].title}</h2>
+      <div className="fade-in owner-page">
+        <h2>{t[lang].title}</h2>
 
       {/* DASHBOARD */}
       <div className="dashboard-grid" style={{ marginBottom: 20 }}>
@@ -193,14 +226,7 @@ export default function Owner({ lang = 'en' }) {
             return (
               <div
                 key={tableId}
-                style={{
-                  padding: "10px 14px",
-                  background: "#f5f5f5",
-                  borderRadius: 10,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
+                className="table-list-item"
               >
                 <span>{t[lang].table} {tableId} ({capacity} {t[lang].seats})</span>
                 <button
@@ -223,6 +249,18 @@ export default function Owner({ lang = 'en' }) {
             placeholder={t[lang].tableNumber}
             value={newTableNum}
             onChange={(e) => setNewTableNum(e.target.value)}
+            style={{
+              padding: 8,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+              flex: 1,
+            }}
+          />
+          <input
+            type="number"
+            placeholder={t[lang].capacity}
+            value={newTableCapacity}
+            onChange={(e) => setNewTableCapacity(e.target.value)}
             style={{
               padding: 8,
               borderRadius: 8,
@@ -339,6 +377,7 @@ export default function Owner({ lang = 'en' }) {
           )}
         </div>
       ))}
-    </div>
+      </div>
+    </>
   );
 }

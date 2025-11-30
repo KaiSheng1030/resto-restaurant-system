@@ -20,8 +20,8 @@ export const updateBooking = (id, data) =>
 export const getTables = () =>
   axios.get(`${API}/tables`);
 
-export const addTable = (number) =>
-  axios.post(`${API}/tables`, { number }); // ⚠ 后端需要 number 字段
+export const addTable = (number, capacity) =>
+  axios.post(`${API}/tables`, { number, capacity });
 
 export const deleteTable = (number) =>
   axios.delete(`${API}/tables/${number}`);
