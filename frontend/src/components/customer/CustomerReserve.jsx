@@ -9,6 +9,7 @@ export default function CustomerReserve({
   selectedTable,
   lang = "en",
   userPhone,       // ⭐ 接收从登入传过来的手机号码
+  setCustomerBookings,
 }) {
   const t = {
     en: {
@@ -16,6 +17,7 @@ export default function CustomerReserve({
       name: "Name",
       phone: "Phone Number",
       people: "Number of People",
+      date: "Date",
       tableNumber: "Table Number",
       selectTable: "Please Select",
       table: "Table",
@@ -36,6 +38,7 @@ export default function CustomerReserve({
       name: "姓名",
       phone: "手机号码",
       people: "人数",
+      date: "日期",
       tableNumber: "餐桌编号",
       selectTable: "请选择",
       table: "餐桌",
@@ -83,6 +86,7 @@ export default function CustomerReserve({
     table: "",
     time: "",
     phone: userPhone || "",     // ⭐ 自动填入登入使用者手机号码
+    date: "",
   });
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -125,9 +129,24 @@ export default function CustomerReserve({
   }, [form.people, form.time, tables, bookings]);
 
   const submit = async () => {
-    if (!form.name || !form.people || !form.time) {
+
+    if (!form.name || !form.people || !form.time || !form.date) {
       safeToast(t[lang].fillAllFields);
       return;
+    }
+
+    // Check if selected time slot is already in the past
+    const now = new Date();
+    const selectedDate = new Date(form.date);
+    // Parse end time from time slot string (e.g., "12:00 - 13:00" => "13:00")
+    const endTime = (form.time || "").split("-")[1]?.trim();
+    if (endTime) {
+      const [h, m] = endTime.split(":").map(Number);
+      selectedDate.setHours(h, m, 0, 0);
+      if (selectedDate < now) {
+        safeToast(lang === "en" ? "The selected time is already past." : "所选时间已过。");
+        return;
+      }
     }
 
     try {
@@ -136,15 +155,34 @@ export default function CustomerReserve({
         people: form.people,
         time: form.time,
         phone: form.phone,
+        date: form.date,
       };
       if (form.table) payload.table = form.table;
 
       const res = await createBooking(payload);
       const table = res.data?.table;
-      if (table) setAssignedTable(table);
+      if (table) {
+        setAssignedTable(table);
+      }
 
-      safeToast(t[lang].bookingSuccess + (table ? ` - ${t[lang].assignedTable} ${table}` : ""));
-      setTimeout(() => setPage("customer"), 2000);
+      // Always reload bookings after reservation
+      if (setCustomerBookings) {
+        const { getBookings } = await import("../../api");
+        const bookingsRes = await getBookings();
+        // Normalize phone numbers for matching
+        const normalizePhone = (phone) => (phone || "").replace(/\D/g, "");
+        setCustomerBookings((bookingsRes.data || []).filter(b => normalizePhone(b.phone) === normalizePhone(form.phone)));
+      }
+
+      safeToast("✓ " + t[lang].bookingSuccess + (table ? ` - ${t[lang].assignedTable} ${table}` : ""));
+      setTimeout(() => {
+        safeToast(
+          lang === "en"
+            ? "To check your reservations, click the bell 🔔 button at the top right."
+            : "如需查看您的预约，请点击右上角铃铛按钮 🔔。"
+        );
+        setPage("customer");
+      }, 2000);
     } catch (err) {
       safeToast(err.response?.data?.error || t[lang].bookingFailed);
     }
@@ -155,23 +193,6 @@ export default function CustomerReserve({
       <MiniBack onBack={() => setPage("customer")} lang={lang} />
 
       <h1 className="cust-title">{t[lang].title}</h1>
-
-      {assignedTable && (
-        <div
-          style={{
-            background: "#d4edda",
-            border: "1px solid #c3e6cb",
-            color: "#155724",
-            padding: "12px",
-            borderRadius: "8px",
-            marginBottom: "20px",
-            textAlign: "center",
-            fontSize: "1.1em",
-          }}
-        >
-          ✓ {t[lang].assignedTable}: {assignedTable}
-        </div>
-      )}
 
       <div className="cust-form-box">
         {/* NAME */}
@@ -200,6 +221,19 @@ export default function CustomerReserve({
             type="number"
             value={form.people}
             onChange={change}
+          />
+        </div>
+
+        {/* DATE */}
+        <div className="cust-field">
+          <label>{t[lang].date}</label>
+          <input
+            className="cust-input"
+            name="date"
+            type="date"
+            value={form.date}
+            onChange={change}
+            min={new Date().toISOString().split('T')[0]}
           />
         </div>
 
@@ -274,8 +308,7 @@ export default function CustomerReserve({
                 color: "#0066cc",
               }}
             >
-              ({t[lang].autoAssign}: {t[lang].table} {recommendedTable.id} -{" "}
-              {recommendedTable.capacity} {t[lang].seats})
+              ( {t[lang].autoAssign}: {t[lang].table} {recommendedTable.id} [ {recommendedTable.capacity} {t[lang].seats} ] )
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-export default function Tables({ bookings, lang = 'en' }) {
+export default function Tables({ bookings, tables = [], lang = 'en' }) {
   const t = {
     en: {
       table: "Table",
@@ -16,36 +16,15 @@ export default function Tables({ bookings, lang = 'en' }) {
     }
   };
 
-  const [tables, setTables] = useState([]);
-
-  // ⭐ 从 localStorage 读取桌子列表
-  useEffect(() => {
-    const saved = localStorage.getItem("tables");
-    if (saved) {
-      setTables(JSON.parse(saved));  // 例如 [1,2,3,4,5,6]
-    } else {
-      setTables([1, 2, 3, 4, 5]); // 默认
-    }
-  }, []);
-
   // ⭐ 判断桌子是否有人
   const isOccupied = (id) =>
     (bookings || []).some((b) => Number(b.table) === Number(id));
-
-  // ⭐ 默认容量（你之前设定）
-  const defaultCap = {
-    1: 2,
-    2: 4,
-    3: 4,
-    4: 6,
-    5: 2,
-  };
 
   return (
     <div className="table-grid">
       {(tables || []).map((tbl) => {
         const tableId = typeof tbl === 'object' ? tbl.id : tbl;
-        const capacity = typeof tbl === 'object' ? tbl.capacity : (defaultCap[tbl] || 4);
+        const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
 
         return (
           <div

@@ -7,6 +7,7 @@ export default function CustomerLogin({ setPage, lang, changeLang, setUserPhone,
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState("customer");
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   /* 🌙 Theme System */
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
@@ -84,15 +85,47 @@ export default function CustomerLogin({ setPage, lang, changeLang, setUserPhone,
   return (
     <div className="login-wrapper">
       
-      {/* 🌍 Language Button */}
-      <button className="lang-btn" onClick={() => changeLang(lang === "en" ? "zh" : "en")}>
-        {lang === "en" ? "中文" : "EN"}
-      </button>
+      {/* Top Right Controls */}
+      <div style={{ position: "absolute", top: "20px", right: "15%", display: "flex", gap: "10px", alignItems: "center", zIndex: 1001 }}>
+        
+        {/* 🌍 Language Button */}
+        <div style={{ position: "relative" }}>
+          <button className="lang-btn" onClick={() => setShowLangMenu(!showLangMenu)}>
+            {lang === "en" ? "English" : "中文"}
+          </button>
 
-      {/* 🌙 Theme Toggle */}
-      <button className="theme-btn" onClick={toggleTheme}>
-        {theme === "light" ? "🌙" : "☀️"}
-      </button>
+          {showLangMenu && (
+            <div className="lang-dropdown">
+              <button
+                className={`lang-option ${lang === "en" ? "active" : ""}`}
+                onClick={() => {
+                  changeLang("en");
+                  setShowLangMenu(false);
+                }}
+              >
+                <span className="lang-text">English</span>
+                {lang === "en" && <span className="lang-check">✓</span>}
+              </button>
+
+              <button
+                className={`lang-option ${lang === "zh" ? "active" : ""}`}
+                onClick={() => {
+                  changeLang("zh");
+                  setShowLangMenu(false);
+                }}
+              >
+                <span className="lang-text">中文</span>
+                {lang === "zh" && <span className="lang-check">✓</span>}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 🌙 Theme Toggle */}
+        <button className="theme-btn" onClick={toggleTheme}>
+          {theme === "light" ? "🌙" : "☀️"}
+        </button>
+      </div>
 
       <div className="login-card">
 
@@ -120,6 +153,11 @@ export default function CustomerLogin({ setPage, lang, changeLang, setUserPhone,
               country={"my"}
               value={phone}
               onChange={(v) => setPhone("+" + v)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleCustomerLogin();
+                }
+              }}
               enableSearch
               countryCodeEditable={false}
               inputStyle={{
@@ -128,6 +166,7 @@ export default function CustomerLogin({ setPage, lang, changeLang, setUserPhone,
                 borderRadius: "10px",
               }}
             />
+            <p className="phone-note">* {lang === "en" ? "Please enter your phone number to log in" : "请输入您的手机号码以登录"}</p>
 
             <button className="login-btn" onClick={handleCustomerLogin}>
               {t[lang].continue}
@@ -144,6 +183,11 @@ export default function CustomerLogin({ setPage, lang, changeLang, setUserPhone,
               value={password}
               placeholder={t[lang].placeholderPassword}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleOwnerLogin();
+                }
+              }}
             />
 
             <button className="login-btn" onClick={handleOwnerLogin}>

@@ -4,31 +4,6 @@ import ConfirmDialog from "./ConfirmDialog";
 import EditDialog from "./EditDialog";
 
 export default function Admin({ setToast, lang = 'en' }) {
-  const t = {
-    en: {
-      title: "Reservation List",
-      searchPlaceholder: "Search bookings...",
-      noMatching: "No matching reservations.",
-      people: "people",
-      table: "Table",
-      edit: "Edit",
-      cancel: "Cancel",
-      bookingCanceled: "Booking canceled!",
-      bookingUpdated: "Booking updated!"
-    },
-    zh: {
-      title: "预订列表",
-      searchPlaceholder: "搜索预订...",
-      noMatching: "没有匹配的预订。",
-      people: "人",
-      table: "餐桌",
-      edit: "编辑",
-      cancel: "取消",
-      bookingCanceled: "预订已取消！",
-      bookingUpdated: "预订已更新！"
-    }
-  };
-
   const [bookings, setBookings] = useState([]);
   const [search, setSearch] = useState("");
   const [confirmId, setConfirmId] = useState(null);
@@ -61,13 +36,42 @@ export default function Admin({ setToast, lang = 'en' }) {
   // Cancel booking
   const handleCancel = async (id) => {
     await cancelBooking(id);
-    setToast(t[lang].bookingCanceled);
+    setToast("Booking canceled!");
     load();
+  };
+
+  const t = {
+    en: {
+      reservationList: "Reservation List",
+      searchPlaceholder: "Search bookings...",
+      noMatch: "No matching reservations.",
+      people: "people",
+      table: "Table",
+      noPhone: "No phone",
+      noDate: "No date",
+      edit: "Edit",
+      cancel: "Cancel",
+      bookingUpdated: "Booking updated!",
+      bookingCanceled: "Booking canceled!"
+    },
+    zh: {
+      reservationList: "預約列表",
+      searchPlaceholder: "搜尋預約...",
+      noMatch: "沒有符合的預約。",
+      people: "人",
+      table: "餐桌",
+      noPhone: "沒有電話",
+      noDate: "沒有日期",
+      edit: "編輯",
+      cancel: "取消",
+      bookingUpdated: "預約已更新！",
+      bookingCanceled: "預約已取消！"
+    }
   };
 
   return (
     <div className="fade-in">
-      <h2>{t[lang].title}</h2>
+      <h2>{t[lang].reservationList}</h2>
 
       {/* Search bar (beautiful version) */}
       <div className="search-wrapper">
@@ -83,18 +87,24 @@ export default function Admin({ setToast, lang = 'en' }) {
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <p className="empty">{t[lang].noMatching}</p>
+        <p className="empty">{t[lang].noMatch}</p>
       )}
 
       {/* Booking list */}
       {filtered.map((b) => (
-        <div className="booking-card" key={b.id}>
+        <div className="booking-card" key={b.id} style={{ position: 'relative' }}>
           <div className="booking-info">
             <span className="booking-name">{b.name}</span>
             <span className="booking-meta">
               {b.people} {t[lang].people} • {t[lang].table} {b.table}
             </span>
             <span className="booking-meta">{b.time}</span>
+            <span className="booking-meta">
+              📞 {b.phone || t[lang].noPhone}
+            </span>
+            <span className="booking-meta">
+              📅 {b.date || t[lang].noDate}
+            </span>
           </div>
 
           <div className="booking-actions">
@@ -106,35 +116,36 @@ export default function Admin({ setToast, lang = 'en' }) {
               {t[lang].cancel}
             </button>
           </div>
+
+          {/* Show confirm dialog inline for this specific booking */}
+          {confirmId === b.id && (
+            <ConfirmDialog
+              lang={lang}
+              onCancel={() => setConfirmId(null)}
+              onConfirm={() => {
+                handleCancel(confirmId);
+                setConfirmId(null);
+                setToast(t[lang].bookingCanceled);
+              }}
+            />
+          )}
+
+          {/* Show edit dialog inline for this specific booking */}
+          {editData && editData.id === b.id && (
+            <EditDialog
+              lang={lang}
+              data={editData}
+              onCancel={() => setEditData(null)}
+              onSave={async (newData) => {
+                await updateBooking(editData.id, newData);
+                setToast(t[lang].bookingUpdated);
+                setEditData(null);
+                load();
+              }}
+            />
+          )}
         </div>
       ))}
-
-      {/* Confirm delete dialog */}
-      {confirmId && (
-        <ConfirmDialog
-          onCancel={() => setConfirmId(null)}
-          onConfirm={() => {
-            handleCancel(confirmId);
-            setConfirmId(null);
-          }}
-          lang={lang}
-        />
-      )}
-
-      {/* Edit booking dialog */}
-      {editData && (
-        <EditDialog
-          data={editData}
-          onCancel={() => setEditData(null)}
-          onSave={async (newData) => {
-            await updateBooking(editData.id, newData);
-            setToast(t[lang].bookingUpdated);
-            setEditData(null);
-            load();
-          }}
-          lang={lang}
-        />
-      )}
     </div>
   );
 }

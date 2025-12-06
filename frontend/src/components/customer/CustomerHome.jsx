@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getBookings, getTables } from "../../api";
+import FloorPlan from "../FloorPlan";
 import "../../customer.css";
 
 export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' }) {
@@ -10,18 +11,28 @@ export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' })
     en: {
       title: "Available Tables",
       subtitle: "View real-time table availability",
+      hint: "💡 Click on any table to see available time slots",
       table: "Table",
-      reserved: "Reserved",
+      seats: "seats",
+      reserved: "Fully Booked",
       available: "Available",
-      bookTable: "Book Table"
+      partiallyBooked: "Partially Booked",
+      slotsBooked: "slots booked",
+      bookTable: "Book Table",
+      clickForDetails: "Click for time slots"
     },
     zh: {
       title: "可用餐桌",
       subtitle: "顾客可实时查看餐桌是否有人预订",
+      hint: "💡 点击任何餐桌查看可用时间段",
       table: "餐桌",
-      reserved: "已预订",
+      seats: "个座位",
+      reserved: "已订满",
       available: "可用",
-      bookTable: "预约餐桌"
+      partiallyBooked: "部分已订",
+      slotsBooked: "时段已订",
+      bookTable: "预约餐桌",
+      clickForDetails: "点击查看时间段"
     }
   };
 
@@ -66,30 +77,96 @@ export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' })
 
   return (
     <div className="cust-container">
-      <h1 className="cust-title">{t[lang].title}</h1>
-      <p className="cust-subtitle">{t[lang].subtitle}</p>
+      {/* Floor Plan First */}
+      <div style={{ position: 'relative' }}>
+        <FloorPlan tables={tables} bookings={bookings} lang={lang} />
+        <p className="floorplan-note">
+          * {lang === 'en' 
+            ? 'Please view this floor plan to select your preferred location before making a reservation.' 
+            : '请查看此平面图以在预订前选择您的首选位置。'}
+        </p>
+      </div>
+
+      <h1 className="cust-title" style={{ 
+        fontSize: '28px', 
+        fontWeight: '800', 
+        color: '#000', 
+        marginBottom: '4px',
+        marginTop: '40px',
+        textAlign: 'center',
+        display: 'block'
+      }}>
+        {t[lang].title}
+      </h1>
+      <p className="cust-subtitle" style={{ 
+        fontSize: '15px', 
+        color: '#666', 
+        marginBottom: '26px',
+        textAlign: 'center',
+        display: 'block'
+      }}>
+        {t[lang].subtitle}
+      </p>
+      
+      {/* Hint/Reminder */}
+      <div style={{
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        color: "white",
+        padding: "12px 16px",
+        borderRadius: "12px",
+        marginBottom: "20px",
+        fontSize: "0.9em",
+        textAlign: "center",
+        boxShadow: "0 4px 12px rgba(102, 126, 234, 0.25)"
+      }}>
+        {t[lang].hint}
+      </div>
 
       <div className="cust-table-grid">
         {(tables || []).map((table) => {
           const tableId = typeof table === 'object' ? table.id : table;
+          const capacity = typeof table === 'object' ? table.capacity : 4;
+          
+          const bookedCount = bookings.filter((b) => Number(b.table) === tableId).length;
+          const totalSlots = timeSlots.length;
+          const fullyBooked = isFullyBooked(tableId);
+          const partiallyBooked = bookedCount > 0 && bookedCount < totalSlots;
 
           return (
             <div
               key={tableId}
-              className={`cust-card ${isFullyBooked(tableId) ? "occupied" : "available"}`}
+              className={`cust-card ${fullyBooked ? "occupied" : partiallyBooked ? "partial" : "available"}`}
               onClick={() => {
                 setSelectedTable(tableId);
                 setPage("customer-table");
               }}
+              style={{ cursor: "pointer" }}
             >
-              <div className="cust-table-id">{t[lang].table} {tableId}</div>
+              <div>
+                <div className="cust-table-id">
+                  {t[lang].table} {tableId}
+                  <span style={{ fontSize: "0.75em", opacity: 0.7, marginLeft: "6px", fontWeight: 500 }}>
+                    ({capacity} {t[lang].seats})
+                  </span>
+                </div>
+                {/* Booking counter below table name */}
+                <div style={{
+                  fontSize: "0.75em",
+                  marginTop: "4px",
+                  opacity: 0.65,
+                  fontStyle: "italic",
+                  color: "var(--muted)"
+                }}>
+                  {bookedCount > 0 ? `${bookedCount}/${totalSlots} ${t[lang].slotsBooked}` : t[lang].clickForDetails}
+                </div>
+              </div>
 
               <div
                 className={`cust-status ${
-                  isFullyBooked(tableId) ? "occupied" : "available"
+                  fullyBooked ? "occupied" : partiallyBooked ? "partial" : "available"
                 }`}
               >
-                {isFullyBooked(tableId) ? t[lang].reserved : t[lang].available}
+                {fullyBooked ? t[lang].reserved : partiallyBooked ? t[lang].partiallyBooked : t[lang].available}
               </div>
             </div>
           );

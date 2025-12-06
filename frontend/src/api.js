@@ -25,3 +25,14 @@ export const addTable = (number, capacity) =>
 
 export const deleteTable = (number) =>
   axios.delete(`${API}/tables/${number}`);
+
+// ----------------- FLOOR PLAN API -----------------
+export const getFloorPlanLayout = () => {
+  console.log("Fetching floor plan layout from:", `${API}/floorplan/layout`);
+  return axios.get(`${API}/floorplan/layout`);
+};
+
+export const saveFloorPlanLayout = (layout) => {
+  console.log("Saving floor plan layout to:", `${API}/floorplan/layout`, layout);
+  return axios.post(`${API}/floorplan/layout`, layout);
+};

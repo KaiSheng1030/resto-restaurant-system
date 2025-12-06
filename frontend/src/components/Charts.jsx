@@ -25,7 +25,7 @@ ChartJS.register(
   Filler
 );
 
-export default function Charts({ bookings = [], lang = 'en' }) {
+export default function Charts({ bookings = [], tables = [], lang = 'en' }) {
 
   /* ========================
      TRANSLATE
@@ -52,10 +52,9 @@ export default function Charts({ bookings = [], lang = 'en' }) {
   /* ========================
      READ TABLE LIST
   ======================== */
-  const tables = JSON.parse(localStorage.getItem("tables") || "[]")
-    .map(t => (typeof t === "object" ? t.id : t));
+  const tableIds = tables.map(t => (typeof t === "object" ? t.id : t));
 
-  const safeTables = tables.length > 0 ? tables : [1, 2, 3, 4, 5];
+  const safeTables = tableIds.length > 0 ? tableIds : [1, 2, 3, 4, 5];
 
   const usage = safeTables.map(
     tblId => bookings.filter(b => Number(b.table) === tblId).length

@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const bookingRoutes = require("./routes/bookingRoutes");
 const loginRoutes = require("./routes/loginRoutes");
 const tableRoutes = require("./routes/tableRoutesX"); // ⭐ 使用 tableRoutesX
+const floorplanRoutes = require("./routes/floorplanRoutes");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/tables", tableRoutes); // ⭐ 让前端可以访问桌子 API
+app.use("/api/floorplan", floorplanRoutes);
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));

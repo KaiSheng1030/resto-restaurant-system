@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 
-export default function Sidebar({ setPage, lang = "en", userRole }) {
+export default function Sidebar({ setPage, lang = "en", userRole, currentPage }) {
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const t = {
     en: {
       reservations: "Reservations",
@@ -16,34 +17,39 @@ export default function Sidebar({ setPage, lang = "en", userRole }) {
       makeReservation: "预订餐桌",
       adminPanel: "管理面板",
       customerView: "顾客",
-      ownerPanel: "老板面板",
+      ownerPanel: "业主面板",
     },
   };
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-top">
-        <div className="logo">
-          Resto<span className="logo-dot">.</span>
+    <>
+      <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
+        <div className="sidebar-top">
+          <div className="logo">
+            Resto<span className="logo-dot">.</span>
+          </div>
+          {!isCollapsed && <div className="subtitle">{t[lang].reservations}</div>}
         </div>
-        <div className="subtitle">{t[lang].reservations}</div>
-      </div>
 
-      <nav className="nav">
+        <nav className="nav">
 
         {/* ⭐ ADMIN SIDEBAR */}
         {userRole === "admin" && (
           <>
-            <button onClick={() => setPage("admin")}>
-              {t[lang].adminPanel}
+            <button 
+              onClick={() => setPage("admin")}
+              className={currentPage === "admin" ? "active" : ""}
+              title={isCollapsed ? t[lang].adminPanel : ""}
+            >
+              {isCollapsed ? "📋" : t[lang].adminPanel}
             </button>
 
-            <button onClick={() => setPage("customer")}>
-              {t[lang].makeReservation}
-            </button>
-
-            <button onClick={() => setPage("customer")}>
-              {t[lang].customerView}
+            <button 
+              onClick={() => setPage("customer")}
+              className={currentPage === "customer" || currentPage === "customer-table" || currentPage === "customer-reserve" ? "active" : ""}
+              title={isCollapsed ? t[lang].customerView : ""}
+            >
+              {isCollapsed ? "👤" : t[lang].customerView}
             </button>
           </>
         )}
@@ -51,30 +57,49 @@ export default function Sidebar({ setPage, lang = "en", userRole }) {
         {/* ⭐ OWNER SIDEBAR → FULL ACCESS */}
         {userRole === "owner" && (
           <>
-            <button onClick={() => setPage("dashboard")}>
-              {t[lang].dashboard}
+            <button 
+              onClick={() => setPage("dashboard")}
+              className={currentPage === "dashboard" ? "active" : ""}
+              title={isCollapsed ? t[lang].dashboard : ""}
+            >
+              {isCollapsed ? "📊" : t[lang].dashboard}
             </button>
 
-            <button onClick={() => setPage("admin")}>
-              {t[lang].adminPanel}
+            <button 
+              onClick={() => setPage("admin")}
+              className={currentPage === "admin" ? "active" : ""}
+              title={isCollapsed ? t[lang].adminPanel : ""}
+            >
+              {isCollapsed ? "📋" : t[lang].adminPanel}
             </button>
 
-            <button onClick={() => setPage("customer")}>
-              {t[lang].customerView}
+            <button 
+              onClick={() => setPage("customer")}
+              className={currentPage === "customer" || currentPage === "customer-table" || currentPage === "customer-reserve" ? "active" : ""}
+              title={isCollapsed ? t[lang].customerView : ""}
+            >
+              {isCollapsed ? "👤" : t[lang].customerView}
             </button>
 
-            <button onClick={() => setPage("customer")}>
-              {t[lang].makeReservation}
-            </button>
-
-            <button onClick={() => setPage("owner")}>
-              {t[lang].ownerPanel}
+            <button 
+              onClick={() => setPage("owner")}
+              className={currentPage === "owner" ? "active" : ""}
+              title={isCollapsed ? t[lang].ownerPanel : ""}
+            >
+              {isCollapsed ? "⚙️" : t[lang].ownerPanel}
             </button>
           </>
         )}
       </nav>
+      </aside>
 
-      <footer className="sidebar-foot">v1.0 • Local</footer>
-    </aside>
+      <button 
+        className="sidebar-toggle"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        {isCollapsed ? "»" : "«"}
+      </button>
+    </>
   );
 }

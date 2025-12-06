@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "capacity": 4,
+    "capacity": 2,
     "available": true
   },
   {
@@ -61,7 +61,7 @@
   },
   {
     "id": 13,
-    "capacity": 10,
+    "capacity": 7,
     "available": true
   }
 ]

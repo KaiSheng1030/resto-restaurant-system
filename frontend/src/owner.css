@@ -150,33 +150,46 @@
 
 .pill-btn {
   padding: 8px 18px;
-  border-radius: 999px;
-
+  border-radius: 10px;
   font-weight: 600;
+  font-size: 13px;
   border: none;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s;
   letter-spacing: -0.2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* BLUE (Edit) */
+/* WHITE (Edit) */
 .btn-edit {
-  background: var(--primary);
-  color: white;
+  background: white;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 .btn-edit:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
+  background: #f5f5f5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .btn-edit {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .btn-edit:hover {
+  background: rgba(255, 255, 255, 1);
 }
 
 /* RED (Cancel/Delete) */
 .btn-cancel {
-  background: #ff3b30;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 .btn-cancel:hover {
-  background: #d8342a;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 /* ===================================
@@ -195,7 +208,12 @@
 }
 
 .customer-live-inner {
-  padding: 10px;
+  padding: 0;
+}
+
+.customer-live-inner .floor-plan-map {
+  height: 450px;
+  min-height: 450px;
 }
 
 /* ===================================
@@ -248,6 +266,13 @@
 .booking-actions {
   display: flex;
   gap: 10px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Prevent dialog wrapper from affecting layout */
+.booking-card > div[style*="position: relative"] {
+  display: contents;
 }
 
 /* ===================================

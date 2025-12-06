@@ -6,22 +6,27 @@ import {
   getTables,
   addTable,
   deleteTable,
+  getFloorPlanLayout,
+  saveFloorPlanLayout,
 } from "../api";
 
 import ConfirmDialog from "./ConfirmDialog";
 import EditDialog from "./EditDialog";
 import Toast from "./Toast";
+import FloorPlan from "./FloorPlan";
+import FloorPlanEditor from "./FloorPlanEditor";
 
 import Charts from "./Charts";
 import CustomerHome from "./customer/CustomerHome";
 import CustomerTablePage from "./customer/CustomerTablePage";
 import CustomerReserve from "./customer/CustomerReserve";
+import "./TablesManager.css";
 
-export default function Owner({ lang = "en" }) {
+export default function Owner({ lang = "en", userRole }) {
   /* ===============================
-        ROLE
+    ROLE
   =============================== */
-  const role = localStorage.getItem("role") || "customer";
+  const role = userRole || "customer";
   const isCustomer = role === "customer";
   const isAdmin = role === "admin";
   const isOwner = role === "owner";
@@ -49,10 +54,12 @@ export default function Owner({ lang = "en" }) {
       people: "people",
       table: "Table",
       noPhone: "No phone",
+      noDate: "No date",
       edit: "Edit",
       cancel: "Cancel",
       cancelReservation: "Cancel reservation for",
       seats: "seats",
+      editLayout: "Edit Floor Plan Layout",
     },
     zh: {
       ownerPanel: "业主面板",
@@ -73,10 +80,12 @@ export default function Owner({ lang = "en" }) {
       people: "人",
       table: "餐桌",
       noPhone: "无电话",
+      noDate: "无日期",
       edit: "编辑",
       cancel: "取消",
       cancelReservation: "取消预订",
       seats: "个座位",
+      editLayout: "编辑平面图布局",
     },
   };
 
@@ -90,6 +99,8 @@ export default function Owner({ lang = "en" }) {
   const [confirmData, setConfirmData] = useState(null);
   const [editData, setEditData] = useState(null);
   const [toast, setToast] = useState("");
+  const [showEditor, setShowEditor] = useState(false);
+  const [floorPlanKey, setFloorPlanKey] = useState(0);
 
   /* ===============================
         LOAD DATA
@@ -140,14 +151,44 @@ export default function Owner({ lang = "en" }) {
         ADD TABLE
   =============================== */
   const handleAddTable = async () => {
-    if (!newTableNum || !newTableCapacity) return;
+    if (!newTableNum.trim()) {
+      const msg = lang === 'en' ? "❌ Please fill in table number" : "❌ 请填写餐桌编号";
+      setToast(msg);
+      return;
+    }
+    
+    if (!newTableCapacity.trim()) {
+      setToast(lang === 'en' ? "❌ Please fill in table capacity" : "❌ 请填写餐桌容量");
+      return;
+    }
+
+    // Check if table number already exists
+    const tableNum = Number(newTableNum);
+    const tableExists = tables.some(tbl => {
+      const tableId = typeof tbl === 'object' ? tbl.id : tbl;
+      return tableId === tableNum;
+    });
+
+    if (tableExists) {
+      setToast(lang === 'en' ? "❌ Table number already exists" : "❌ 餐桌编号已存在");
+      return;
+    }
 
     try {
-      await addTable(Number(newTableNum), Number(newTableCapacity));
-      loadTables();
+      await addTable(tableNum, Number(newTableCapacity));
       setNewTableNum("");
       setNewTableCapacity("");
-    } catch {}
+      await loadTables();
+      
+      // Add default position for new table to backend
+      await addDefaultPositionForNewTable(tableNum, Number(newTableCapacity));
+      
+      setFloorPlanKey(prev => prev + 1);
+      setToast(lang === 'en' ? "✅ Table added successfully!" : "✅ 餐桌添加成功！");
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || (lang === 'en' ? "Failed to add table" : "添加餐桌失败");
+      setToast(`❌ ${errorMsg}`);
+    }
   };
 
   /* ===============================
@@ -156,8 +197,86 @@ export default function Owner({ lang = "en" }) {
   const handleDeleteTable = async (id) => {
     try {
       await deleteTable(id);
-      loadTables();
-    } catch {}
+      await loadTables();
+      
+      // Remove table position from backend
+      await removeTablePositionFromBackend(id);
+      
+      setFloorPlanKey(prev => prev + 1);
+      const msg = lang === 'en' ? `✅ Table ${id} deleted successfully!` : `✅ 餐桌 ${id} 已成功删除！`;
+      setToast(msg);
+    } catch {
+      const msg = lang === 'en' ? `❌ Failed to delete table ${id}` : `❌ 删除餐桌 ${id} 失败`;
+      setToast(msg);
+    }
+  };
+
+  /* ===============================
+        HELPER: Add default position for new table
+  =============================== */
+  const addDefaultPositionForNewTable = async (tableId, capacity) => {
+    try {
+      const res = await getFloorPlanLayout();
+      const currentLayout = res.data || {};
+      
+      // Calculate default position
+      const positions = {
+        1: { top: "20%", left: "10%" },
+        2: { top: "42%", left: "10%" },
+        3: { top: "20%", left: "28%" },
+        4: { top: "20%", left: "46%" },
+        5: { top: "22%", left: "68%" },
+        6: { top: "50%", left: "28%" },
+        7: { top: "50%", left: "46%" },
+        8: { top: "16%", left: "87%" },
+        9: { top: "32%", left: "87%" },
+        10: { top: "75%", left: "30%" },
+        11: { top: "50%", left: "68%" },
+        12: { top: "75%", left: "53%" },
+        13: { top: "75%", left: "72%" },
+      };
+      
+      const defaultPos = positions[tableId] || {
+        top: `${85 + Math.floor((tableId - 14) / 3) * 12}%`,
+        left: `${15 + ((tableId - 14) % 3) * 30}%`,
+      };
+      
+      // Add new table position to layout
+      const updatedLayout = {
+        ...currentLayout,
+        tables: {
+          ...(currentLayout.tables || {}),
+          [tableId]: defaultPos
+        }
+      };
+      
+      await saveFloorPlanLayout(updatedLayout);
+    } catch (err) {
+      console.error("Failed to save default position for new table:", err);
+    }
+  };
+
+  /* ===============================
+        HELPER: Remove table position from backend
+  =============================== */
+  const removeTablePositionFromBackend = async (tableId) => {
+    try {
+      const res = await getFloorPlanLayout();
+      const currentLayout = res.data || {};
+      
+      if (currentLayout.tables && currentLayout.tables[tableId]) {
+        const { [tableId]: removed, ...remainingTables } = currentLayout.tables;
+        
+        const updatedLayout = {
+          ...currentLayout,
+          tables: remainingTables
+        };
+        
+        await saveFloorPlanLayout(updatedLayout);
+      }
+    } catch (err) {
+      console.error("Failed to remove table position:", err);
+    }
   };
 
   return (
@@ -191,30 +310,31 @@ export default function Owner({ lang = "en" }) {
               </div>
             </div>
 
-            <h3>{t[lang].tableManager}</h3>
-            <div className="card" style={{ padding: 20 }}>
-              {tables.map((tbl) => {
-                const id = typeof tbl === "object" ? tbl.id : tbl;
-                const cap = typeof tbl === "object" ? tbl.capacity : "N/A";
+            <div className="table-manager">
+              <h3 className="tm-title">{t[lang].tableManager}</h3>
+              
+              <div className="tm-list">
+                {tables.map((tbl) => {
+                  const id = typeof tbl === "object" ? tbl.id : tbl;
+                  const cap = typeof tbl === "object" ? tbl.capacity : "N/A";
 
-                return (
-                  <div key={id} className="table-list-item">
-                    <span>
-                      {t[lang].table} {id} ({cap} {t[lang].seats})
-                    </span>
+                  return (
+                    <div key={id} className="tm-row">
+                      <span className="tm-table-info">
+                        {t[lang].table} {id} ({cap} {t[lang].seats})
+                      </span>
+                      <button
+                        className="tm-delete"
+                        onClick={() => handleDeleteTable(id)}
+                      >
+                        {t[lang].delete}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
 
-                    <button
-                      className="pill-btn btn-cancel"
-                      onClick={() => handleDeleteTable(id)}
-                    >
-                      {t[lang].delete}
-                    </button>
-                  </div>
-                );
-              })}
-
-              <h4>{t[lang].addTable}</h4>
-              <div style={{ display: "flex", gap: 10 }}>
+              <div className="tm-add-box">
                 <input
                   type="number"
                   placeholder={t[lang].tableNumber}
@@ -227,13 +347,13 @@ export default function Owner({ lang = "en" }) {
                   value={newTableCapacity}
                   onChange={(e) => setNewTableCapacity(e.target.value)}
                 />
-                <button className="pill-btn btn-edit" onClick={handleAddTable}>
+                <button className="tm-add" onClick={handleAddTable}>
                   {t[lang].add}
                 </button>
               </div>
             </div>
 
-            <Charts bookings={bookings} lang={lang} />
+            <Charts bookings={bookings} tables={tables} lang={lang} />
 
             <h3 style={{ marginTop: 40 }}>{t[lang].allReservations}</h3>
 
@@ -248,53 +368,91 @@ export default function Owner({ lang = "en" }) {
                   <span className="booking-meta">
                     📞 {b.phone || t[lang].noPhone}
                   </span>
+                  <span className="booking-meta">
+                    📅 {b.date || t[lang].noDate}
+                  </span>
                 </div>
 
                 <div className="booking-actions">
                   <button
-                    className="pill-btn btn-edit"
+                    className="mini-btn"
                     onClick={() => setEditData(b.id)}
                   >
                     {t[lang].edit}
                   </button>
 
                   <button
-                    className="pill-btn btn-cancel"
+                    className="danger-btn"
                     onClick={() =>
                       setConfirmData({ bookingId: b.id, name: b.name })
                     }
                   >
                     {t[lang].cancel}
                   </button>
+
+                  {/* Render dialogs as siblings to buttons */}
+                  {editData === b.id && (
+                    <div style={{ position: 'relative', zIndex: 10 }}>
+                      <EditDialog
+                        data={b}
+                        onCancel={() => setEditData(null)}
+                        onSave={async (u) => {
+                          await updateBooking(b.id, u);
+                          setEditData(null);
+                          loadBookings();
+                        }}
+                        lang={lang}
+                      />
+                    </div>
+                  )}
+
+                  {confirmData?.bookingId === b.id && (
+                    <div style={{ position: 'relative', zIndex: 10 }}>
+                      <ConfirmDialog
+                        message={`${t[lang].cancelReservation} ${b.name}?`}
+                        onCancel={() => setConfirmData(null)}
+                        onConfirm={async () => {
+                          await cancelBooking(b.id);
+                          setConfirmData(null);
+                          loadBookings();
+                        }}
+                        lang={lang}
+                      />
+                    </div>
+                  )}
                 </div>
-
-                {editData === b.id && (
-                  <EditDialog
-                    data={b}
-                    onCancel={() => setEditData(null)}
-                    onSave={async (u) => {
-                      await updateBooking(b.id, u);
-                      setEditData(null);
-                      loadBookings();
-                    }}
-                    lang={lang}
-                  />
-                )}
-
-                {confirmData?.bookingId === b.id && (
-                  <ConfirmDialog
-                    message={`${t[lang].cancelReservation} ${b.name}?`}
-                    onCancel={() => setConfirmData(null)}
-                    onConfirm={async () => {
-                      await cancelBooking(b.id);
-                      setConfirmData(null);
-                      loadBookings();
-                    }}
-                    lang={lang}
-                  />
-                )}
               </div>
             ))}
+
+            {/* Edit Floor Plan Button */}
+            <div style={{ marginTop: '60px', marginBottom: '-60px', marginLeft: '60px' }}>
+              {isOwner && (
+                <button
+                  className="pill-btn"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontSize: '14px',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    position: 'relative',
+                    zIndex: 200
+                  }}
+                  onClick={() => {
+                    setShowEditor(true);
+                    // Scroll to center of page smoothly when opening editor
+                    setTimeout(() => {
+                      const scrollHeight = document.documentElement.scrollHeight;
+                      const windowHeight = window.innerHeight;
+                      const centerPosition = (scrollHeight - windowHeight) / 2;
+                      window.scrollTo({ top: centerPosition, behavior: 'smooth' });
+                    }, 50);
+                  }}
+                >
+                  🎨 {t[lang].editLayout}
+                </button>
+              )}
+            </div>
           </>
         )}
 
@@ -338,38 +496,54 @@ export default function Owner({ lang = "en" }) {
         {/* CUSTOMER VIEW */}
         {isCustomer && (
           <>
-            <h3 style={{ marginTop: 40 }}>{t[lang].customerLiveView}</h3>
+            <h3 style={{ marginTop: 16 }}>{t[lang].customerLiveView}</h3>
           </>
         )}
 
         {/* LIVE VIEW */}
-        <div className="card customer-live-card">
-          <div className="customer-live-inner">
-            {custPage === "home" && (
-              <CustomerHome
-                setPage={handleCustomerSetPage}
-                setSelectedTable={setCustSelectedTable}
-                lang={lang}
-              />
-            )}
-            {custPage === "table" && (
-              <CustomerTablePage
-                tableId={custSelectedTable}
-                setPage={handleCustomerSetPage}
-                lang={lang}
-              />
-            )}
-            {custPage === "reserve" && (
-              <CustomerReserve
-                selectedTable={custSelectedTable}
-                setPage={handleCustomerSetPage}
-                setToast={setToast}
-                lang={lang}
-              />
-            )}
-          </div>
+        <div className="customer-live-inner">
+          {custPage === "home" && (
+            <CustomerHome
+              key={floorPlanKey}
+              setPage={handleCustomerSetPage}
+              setSelectedTable={setCustSelectedTable}
+              lang={lang}
+            />
+          )}
+          {custPage === "table" && (
+            <CustomerTablePage
+              tableId={custSelectedTable}
+              setPage={handleCustomerSetPage}
+              lang={lang}
+            />
+          )}
+          {custPage === "reserve" && (
+            <CustomerReserve
+              selectedTable={custSelectedTable}
+              setPage={handleCustomerSetPage}
+              setToast={setToast}
+              lang={lang}
+            />
+          )}
         </div>
       </div>
+
+      {/* Floor Plan Editor Modal */}
+      {showEditor && (
+        <FloorPlanEditor
+          key={floorPlanKey}
+          tables={tables}
+          onClose={(needsRefresh) => {
+            setShowEditor(false);
+            // Force re-render of FloorPlan component by updating key
+            if (needsRefresh) {
+              loadTables();
+              setFloorPlanKey(prev => prev + 1); // Force CustomerHome to reload floor plan
+            }
+          }}
+          lang={lang}
+        />
+      )}
     </>
   );
 }

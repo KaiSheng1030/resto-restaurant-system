@@ -43,14 +43,21 @@ export default function TablesManager() {
       <h3 className="tm-title">Table Manager</h3>
 
       <div className="tm-list">
-        {tables.map((t) => (
-          <div className="tm-row" key={t}>
-            <span>Table {t}</span>
-            <button className="tm-delete" onClick={() => handleDelete(t)}>
-              Delete
-            </button>
-          </div>
-        ))}
+        {tables.map((t) => {
+          const tableId = typeof t === 'object' ? t.id : t;
+          const capacity = typeof t === 'object' ? t.capacity : 4;
+          return (
+            <div className="tm-row" key={tableId}>
+              <div className="tm-info">
+                <span className="tm-table-number">Table {tableId}</span>
+                <span className="tm-capacity">{capacity} seats</span>
+              </div>
+              <button className="tm-delete" onClick={() => handleDelete(tableId)}>
+                <span>🗑️</span>
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       <div className="tm-add-box">

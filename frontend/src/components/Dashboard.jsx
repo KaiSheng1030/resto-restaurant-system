@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getBookings } from "../api";
+import { getBookings, getTables } from "../api";
 import Tables from "./Tables";
 import Charts from "./Charts";
 
@@ -28,9 +28,17 @@ export default function Dashboard({ lang = 'en' }) {
 
   // ⭐ 读取桌子数量（来自 Owner Panel）
   useEffect(() => {
-    const saved = localStorage.getItem("tables");
-    if (saved) setTables(JSON.parse(saved));
-    else setTables([1, 2, 3, 4, 5]);
+    const loadTables = async () => {
+      try {
+        const res = await getTables();
+        console.log("Dashboard loaded tables:", res.data);
+        setTables(res.data || []);
+      } catch (e) {
+        console.log("Failed to fetch tables:", e);
+        setTables([]);
+      }
+    };
+    loadTables();
   }, []);
 
   // ⭐ 自动刷新 booking
@@ -79,10 +87,10 @@ export default function Dashboard({ lang = 'en' }) {
       </div>
 
       <h2 className="section-title">{t[lang].tableStatus}</h2>
-      <Tables bookings={bookings} lang={lang} />
+      <Tables bookings={bookings} tables={tables} lang={lang} />
 
       <h2 className="section-title">{t[lang].analytics}</h2>
-      <Charts bookings={bookings} lang={lang} />
+      <Charts bookings={bookings} tables={tables} lang={lang} />
     </div>
   );
 }
