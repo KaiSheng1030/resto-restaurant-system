@@ -1,28 +1,15 @@
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
 const router = express.Router();
 
-const tablesPath = path.join(__dirname, "../tables.json");
-
-function loadTables() {
-  return JSON.parse(fs.readFileSync(tablesPath, "utf8"));
-}
-
-function saveTables(data) {
-  fs.writeFileSync(tablesPath, JSON.stringify(data, null, 2));
-}
+const Table = require("../models/Table");
 
 /* -----------------------------
    GET ALL TABLES
 ------------------------------ */
 router.get("/", (req, res) => {
-  try {
-    const tables = loadTables();
-    res.json(tables);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to read tables" });
-  }
+  Table.find()
+    .then(tables => res.json(tables))
+    .catch(err => res.status(500).json({ error: "Failed to read tables" }));
 });
 
 /* -----------------------------
@@ -31,24 +18,22 @@ router.get("/", (req, res) => {
 ------------------------------ */
 router.post("/", (req, res) => {
   const { number, capacity } = req.body;
-  let tables = loadTables();
-
   let id = number !== undefined ? Number(number) : null;
-  if (id && tables.some(t => t.id === id)) {
-    return res.status(400).json({ error: "Table already exists" });
-  }
-
-  if (!id) {
-    id = (tables.reduce((m, t) => Math.max(m, t.id), 0) || 0) + 1;
-  }
-
   const cap = capacity ? Number(capacity) : 4;
-  const newTable = { id, capacity: cap, available: true };
-  tables.push(newTable);
-  tables.sort((a, b) => a.id - b.id);
-
-  saveTables(tables);
-  res.json(tables);
+  (async () => {
+    if (id) {
+      const exists = await Table.findOne({ id });
+      if (exists) return res.status(400).json({ error: "Table already exists" });
+    } else {
+      // Auto-increment id
+      const last = await Table.findOne().sort({ id: -1 });
+      id = last ? last.id + 1 : 1;
+    }
+    const newTable = new Table({ id, capacity: cap });
+    await newTable.save();
+    const tables = await Table.find().sort({ id: 1 });
+    res.json(tables);
+  })();
 });
 
 /* -----------------------------
@@ -56,15 +41,13 @@ router.post("/", (req, res) => {
 ------------------------------ */
 router.delete("/:id", (req, res) => {
   const id = Number(req.params.id);
-  let tables = loadTables();
-
-  if (!tables.some(t => t.id === id)) {
-    return res.status(404).json({ error: "Table not found" });
-  }
-
-  tables = tables.filter((t) => t.id !== id);
-  saveTables(tables);
-  res.json(tables);
+  (async () => {
+    const exists = await Table.findOne({ id });
+    if (!exists) return res.status(404).json({ error: "Table not found" });
+    await Table.deleteOne({ id });
+    const tables = await Table.find().sort({ id: 1 });
+    res.json(tables);
+  })();
 });
 
 module.exports = router;

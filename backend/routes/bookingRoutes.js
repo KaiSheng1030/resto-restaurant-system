@@ -1,79 +1,11 @@
 const express = require("express");
 const router = express.Router();
+
+const Booking = require("../models/Booking");
+// For table auto-assign, we still need to read tables.json for now (unless you want to migrate tables too)
 const fs = require("fs");
 const path = require("path");
-
-const bookingsPath = path.join(__dirname, "..", "bookings.json");
 const tablesPath = path.join(__dirname, "..", "tables.json");
-const historyPath = path.join(__dirname, "..", "booking-history.json");
-// Load booking history from file
-const loadHistory = () => {
-  try {
-    return JSON.parse(fs.readFileSync(historyPath, "utf8"));
-  } catch {
-    return [];
-  }
-};
-
-// Save booking history to file
-const saveHistory = (data) => {
-  fs.writeFileSync(historyPath, JSON.stringify(data, null, 2));
-};
-// Helper: parse time slot string to end time (24h)
-function getEndTime(timeSlot) {
-  // e.g. "12:00 - 13:00" => "13:00"
-  if (!timeSlot) return null;
-  const parts = timeSlot.split("-");
-  if (parts.length !== 2) return null;
-  return parts[1].trim();
-}
-
-// Helper: check and archive expired bookings
-function archiveExpiredBookings() {
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
-  let changed = false;
-  let bookingsData = loadBookings();
-  let historyData = loadHistory();
-  const keep = [];
-  for (const b of bookingsData) {
-    // Only archive if date < today, or (date == today and end time < now)
-    if (b.date < todayStr) {
-      historyData.push({ ...b, completed: true });
-      changed = true;
-    } else if (b.date === todayStr) {
-      const end = getEndTime(b.time);
-      if (end) {
-        const [h, m] = end.split(":").map(Number);
-        const endDate = new Date(b.date + 'T' + end + ':00');
-        if (now > endDate) {
-          historyData.push({ ...b, completed: true });
-          changed = true;
-          continue;
-        }
-      }
-      keep.push(b);
-    } else {
-      keep.push(b);
-    }
-  }
-  if (changed) {
-    saveBookings(keep);
-    saveHistory(historyData);
-    bookings = keep;
-  }
-}
-
-// Load bookings from file
-const loadBookings = () => {
-  try {
-    return JSON.parse(fs.readFileSync(bookingsPath, "utf8"));
-  } catch {
-    return [];
-  }
-};
-
-// Load tables from file
 const loadTables = () => {
   try {
     return JSON.parse(fs.readFileSync(tablesPath, "utf8"));
@@ -81,142 +13,110 @@ const loadTables = () => {
     return [];
   }
 };
-
-// Save bookings to file
-const saveBookings = (data) => {
-  fs.writeFileSync(bookingsPath, JSON.stringify(data, null, 2));
-};
-
-let bookings = loadBookings();
+// Helper: parse time slot string to end time (24h)
+function getEndTime(timeSlot) {
+  if (!timeSlot) return null;
+  const parts = timeSlot.split("-");
+  if (parts.length !== 2) return null;
+  return parts[1].trim();
+}
 
 /* ----------------- CREATE BOOKING ----------------- */
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   let { name, people, table, time, phone, date } = req.body;
-
-  // ⭐ Validate required fields (table is optional for auto-assign)
   if (!name || !people || !time || !phone) {
     return res.status(400).json({ error: "Missing required fields" });
   }
-
-  // ⭐ Auto-assign table if not provided
   if (!table) {
     const tables = loadTables();
     const peopleNum = Number(people);
-    
     // Get occupied tables at this time
-    const occupiedAtTime = bookings
-      .filter((b) => b.time === time && b.date === date)
-      .map((b) => Number(b.table));
-
+    const occupiedAtTime = await Booking.find({ time, date }).select("table");
+    const occupiedIds = occupiedAtTime.map(b => Number(b.table));
     // Find suitable table
     const availableTables = tables
       .filter((tbl) => {
         const capacity = tbl.capacity || 4;
-        return capacity >= peopleNum && !occupiedAtTime.includes(tbl.id);
+        return capacity >= peopleNum && !occupiedIds.includes(tbl.id);
       })
       .sort((a, b) => {
         const capA = a.capacity || 4;
         const capB = b.capacity || 4;
         return capA - capB || a.id - b.id;
       });
-
     if (availableTables.length === 0) {
       return res.status(400).json({ error: "No available table for this time slot" });
     }
-
     table = availableTables[0].id;
   }
-
   // 检查重复预约
-  const exists = bookings.some(
-    (b) => Number(b.table) === Number(table) && b.time === time && b.date === date
-  );
-
+  const exists = await Booking.findOne({ table: Number(table), time, date });
   if (exists) {
-    return res.status(400).json({
-      error: "This time slot is already booked for this table.",
-    });
+    return res.status(400).json({ error: "This time slot is already booked for this table." });
   }
-
-  // ⭐ 必须保存 phone 和 date
-  const newBooking = {
-    id: Date.now(),
+  const newBooking = new Booking({
     name,
     people: Number(people),
     table: Number(table),
     time,
     phone,
     date,
-  };
-
-  bookings.push(newBooking);
-  saveBookings(bookings);
+    status: "active"
+  });
+  await newBooking.save();
   res.json(newBooking);
 });
 
 /* ----------------- READ ALL ----------------- */
-router.get("/", (req, res) => {
-  archiveExpiredBookings();
+router.get("/", async (req, res) => {
+  // Optionally, you can implement archiving logic here with MongoDB
+  const bookings = await Booking.find({ status: { $ne: "archived" } });
   res.json(bookings);
 });
 /* ----------------- HISTORY ENDPOINT ----------------- */
-router.get("/history", (req, res) => {
-  archiveExpiredBookings();
-  res.json(loadHistory());
+router.get("/history", async (req, res) => {
+  const history = await Booking.find({ $or: [ { status: "archived" }, { completed: true }, { cancelled: true } ] });
+  res.json(history);
 });
 
 /* ----------------- READ BY TABLE ----------------- */
-router.get("/table/:id", (req, res) => {
+router.get("/table/:id", async (req, res) => {
   const tableId = Number(req.params.id);
-  const filtered = bookings.filter((b) => Number(b.table) === tableId);
+  const filtered = await Booking.find({ table: tableId });
   res.json(filtered);
 });
 
 /* ----------------- UPDATE BOOKING ----------------- */
-router.patch("/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const index = bookings.findIndex((b) => b.id === id);
-
-  if (index === -1) return res.status(404).json({ error: "Booking not found" });
-
+router.patch("/:id", async (req, res) => {
+  const id = req.params.id;
+  const booking = await Booking.findById(id);
+  if (!booking) return res.status(404).json({ error: "Booking not found" });
   // 时间冲突检查
   if (req.body.table || req.body.time) {
-    const table = req.body.table || bookings[index].table;
-    const time = req.body.time || bookings[index].time;
-
-    const conflict = bookings.some(
-      (b) =>
-        b.id !== id &&
-        Number(b.table) === Number(table) &&
-        b.time === time
-    );
-
+    const table = req.body.table || booking.table;
+    const time = req.body.time || booking.time;
+    const conflict = await Booking.findOne({
+      _id: { $ne: id },
+      table: Number(table),
+      time
+    });
     if (conflict) {
-      return res
-        .status(400)
-        .json({ error: "This time slot is already booked for this table." });
+      return res.status(400).json({ error: "This time slot is already booked for this table." });
     }
   }
-
-  // ⭐ 更新 phone（你之前完全没更新）
-  bookings[index] = { ...bookings[index], ...req.body };
-  saveBookings(bookings);
-
-  res.json(bookings[index]);
+  Object.assign(booking, req.body);
+  await booking.save();
+  res.json(booking);
 });
 
 /* ----------------- DELETE ----------------- */
-router.delete("/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const toCancel = bookings.find((b) => b.id === id);
-  if (toCancel) {
-    // Mark as cancelled and move to history
-    const historyData = loadHistory();
-    historyData.push({ ...toCancel, cancelled: true });
-    saveHistory(historyData);
+router.delete("/:id", async (req, res) => {
+  const id = req.params.id;
+  const booking = await Booking.findById(id);
+  if (booking) {
+    booking.status = "cancelled";
+    await booking.save();
   }
-  bookings = bookings.filter((b) => b.id !== id);
-  saveBookings(bookings);
   res.json({ success: true });
 });
 
