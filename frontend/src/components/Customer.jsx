@@ -22,12 +22,14 @@ export default function Customer({ setToast }) {
 
   useEffect(() => {
     loadBookings();
+    const interval = setInterval(loadBookings, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   async function loadBookings() {
     try {
       const res = await getBookings();
-      setBookings(res.data || []);
+      setBookings((res.data || []).filter(b => b.status !== "cancelled"));
     } catch {
       console.log("Failed to load bookings");
     }
@@ -63,21 +65,22 @@ export default function Customer({ setToast }) {
 
       <div className="customer-seats-grid">
         {tables.map((tbl) => {
-          const isOccupied = bookings.some((b) => Number(b.table) === tbl.id);
+          const tableId = typeof tbl === "object" ? tbl.id : tbl;
+          const isOccupied = bookings.some((b) => Number(b.table) === tableId);
 
           return (
             <div
-              key={tbl.id}
+              key={tableId}
               className="customer-seat-card"
-              onClick={() => !isOccupied && setSelectedTable(tbl.id)}
+              onClick={() => !isOccupied && setSelectedTable(tableId)}
               style={{
                 border:
-                  selectedTable === tbl.id
+                  selectedTable === tableId
                     ? "2px solid var(--accent-2)"
                     : "2px solid transparent"
               }}
             >
-              <div className="customer-seat-title">Table {tbl.id}</div>
+              <div className="customer-seat-title">Table {tableId}</div>
               <div className="customer-seat-meta">Seats: {tbl.seats}</div>
 
               <span

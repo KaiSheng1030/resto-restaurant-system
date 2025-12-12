@@ -4,7 +4,13 @@ import { getFloorPlanLayout, saveFloorPlanLayout } from "../api";
 
 export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
   const [isEditMode, setIsEditMode] = useState(true);
-  const [positions, setPositions] = useState(() => getDefaultPositions(tables));
+  const [positions, setPositions] = useState(() => {
+    const defaultPos = getDefaultPositions(tables);
+    return {
+      ...defaultPos,
+      tables: defaultPos.tables || {},
+    };
+  });
   const [rotations, setRotations] = useState({});
   const [sizes, setSizes] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
@@ -18,6 +24,12 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
 
   // Update positions when tables prop changes
   useEffect(() => {
+    // Only run on mount when positions haven't been set yet
+    // Don't reload positions constantly as tables change due to polling
+    if (positions.tables && Object.keys(positions.tables).length > 0) {
+      return; // Already loaded, don't reload
+    }
+
     const updateTablePositions = async () => {
       try {
         // Load latest saved positions from backend
@@ -69,7 +81,7 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
     };
     
     updateTablePositions();
-  }, [tables]);
+  }, []);
 
   const t = {
     en: {
@@ -116,10 +128,10 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
     },
   };
 
-  // Load saved layout on mount and when tables change
+  // Load saved layout only on mount, don't reload on tables change
   useEffect(() => {
     loadSavedLayout();
-  }, [tables]);
+  }, []);
 
   const loadSavedLayout = async () => {
     try {
@@ -696,7 +708,7 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
           </div>
 
           {/* Restrooms - now treated like tables */}
-          {positions.restrooms.map((restroom) => {
+          {(positions.restrooms || []).map((restroom) => {
             const isDragging = draggedItem?.id === restroom.id && draggedItem?.type === "restroom";
             const isSelected = selectedItem?.type === "restroom" && selectedItem?.id === restroom.id;
             return (
@@ -733,7 +745,7 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
           })}
 
           {/* Windows */}
-          {positions.windows.map((window, idx) => (
+          {(positions.windows || []).map((window, idx) => (
             <div
               key={idx}
               className={`window-indicator ${
@@ -746,10 +758,10 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
           ))}
 
           {/* Tables */}
-          {tables.map((table) => {
+          {(tables || []).map((table) => {
             const tableId = table.id;
             const capacity = table.capacity;
-            const position = positions.tables[tableId] || {
+            const position = (positions.tables && positions.tables[tableId]) || {
               top: "20%",
               left: "10%",
             };

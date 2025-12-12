@@ -71,7 +71,7 @@ export default function CustomerReserve({
       try {
         const { getBookings } = await import("../../api");
         const res = await getBookings();
-        setBookings(res.data || []);
+        setBookings((res.data || []).filter(b => b.status !== "cancelled"));
       } catch (err) {
         console.log("Failed to load bookings");
       }
@@ -98,7 +98,7 @@ export default function CustomerReserve({
       const timeStr = form.time;
 
       const occupiedAtTime = bookings
-        .filter((b) => b.time === timeStr)
+        .filter((b) => b.status !== "cancelled" && b.time === timeStr)
         .map((b) => Number(b.table));
 
       const candidates = tables
@@ -267,7 +267,11 @@ export default function CustomerReserve({
           <select className="cust-input" name="table" value={form.table} onChange={change}>
             <option value="">{t[lang].autoAssign}</option>
 
-            {tables.map((tbl) => {
+            {[...(tables || [])].sort((a, b) => {
+              const idA = typeof a === 'object' ? a.id : a;
+              const idB = typeof b === 'object' ? b.id : b;
+              return Number(idA) - Number(idB);
+            }).map((tbl) => {
               const tableId = typeof tbl === "object" ? tbl.id : tbl;
               const capacity = typeof tbl === "object" ? tbl.capacity : 4;
               const peopleNum = Number(form.people) || 0;

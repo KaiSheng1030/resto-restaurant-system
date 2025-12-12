@@ -26,6 +26,10 @@ export default function CustomerDetails({ setPage, selected, setToast }) {
           <span>Time</span>
           <span>{selected.time}</span>
         </div>
+        <div className="cust-ticket-line">
+          <span>ID</span>
+          <span>{selected._id}</span>
+        </div>
       </div>
 
       <button
@@ -38,9 +42,19 @@ export default function CustomerDetails({ setPage, selected, setToast }) {
       <button
         className="cust-secondary-btn"
         onClick={async () => {
-          await cancelBooking(selected.id);
-          setToast("Reservation cancelled");
-          setPage("customer-home");
+          try {
+            if (!selected || !selected._id) {
+              setToast("Error: No booking ID found");
+              return;
+            }
+            console.log("Cancelling booking with ID:", selected._id);
+            await cancelBooking(selected._id);
+            setToast("Reservation cancelled");
+            setPage("customer-home");
+          } catch (err) {
+            console.error("Cancel booking error:", err);
+            setToast("Failed to cancel: " + (err?.response?.data?.error || err.message));
+          }
         }}
       >
         Cancel Reservation

@@ -20,9 +20,16 @@ export default function Tables({ bookings, tables = [], lang = 'en' }) {
   const isOccupied = (id) =>
     (bookings || []).some((b) => Number(b.table) === Number(id));
 
+  // Sort tables numerically
+  const sortedTables = [...(tables || [])].sort((a, b) => {
+    const idA = typeof a === 'object' ? a.id : a;
+    const idB = typeof b === 'object' ? b.id : b;
+    return Number(idA) - Number(idB);
+  });
+
   return (
     <div className="table-grid">
-      {(tables || []).map((tbl) => {
+      {sortedTables.map((tbl) => {
         const tableId = typeof tbl === 'object' ? tbl.id : tbl;
         const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
 

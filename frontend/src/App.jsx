@@ -56,8 +56,11 @@ export default function App() {
     if (!userPhone) return setCustomerBookings([]);
     try {
       const res = await getBookings();
-      // Only show bookings for this phone number (normalized)
-      setCustomerBookings((res.data || []).filter(b => normalizePhone(b.phone) === normalizePhone(userPhone)));
+      // Only show active bookings for this phone number (normalized)
+      setCustomerBookings((res.data || []).filter(b => 
+        normalizePhone(b.phone) === normalizePhone(userPhone) && 
+        b.status !== "cancelled"
+      ));
     } catch {
       setCustomerBookings([]);
     }
@@ -547,10 +550,13 @@ export default function App() {
                 }}
                 onClick={async () => {
                   try {
-                    await cancelBooking(confirmCancel.booking.id);
-                    setCustomerBookings(prev => prev.filter(b => b.id !== confirmCancel.booking.id));
+                    console.log("Cancelling booking from bell icon:", confirmCancel.booking);
+                    console.log("Booking ID:", confirmCancel.booking._id);
+                    await cancelBooking(confirmCancel.booking._id);
+                    setCustomerBookings(prev => prev.filter(b => b._id !== confirmCancel.booking._id));
                     setToast(lang === "en" ? "Reservation cancelled." : "预约已取消。");
-                  } catch {
+                  } catch (error) {
+                    console.error("Cancel error:", error);
                     setToast(lang === "en" ? "Failed to cancel." : "取消失败。");
                   }
                   setConfirmCancel({ show: false, booking: null });

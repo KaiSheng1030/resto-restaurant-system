@@ -1,6 +1,7 @@
 import axios from "axios";
 
 // ----------------- BASE URL -----------------
+// Update this to your Azure backend URL
 const API = "http://localhost:5000/api";
 
 // ----------------- BOOKINGS API -----------------

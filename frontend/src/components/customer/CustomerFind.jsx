@@ -8,7 +8,7 @@ export default function CustomerFind({ setPage, setSelected }) {
 
   const search = async () => {
     const res = await getBookings();
-    const bookings = res.data;
+    const bookings = (res.data || []).filter(b => b.status !== "cancelled");
 
     const match = bookings.find(
       (b) =>
@@ -17,6 +17,8 @@ export default function CustomerFind({ setPage, setSelected }) {
 
     if (!match) return setError("No reservation found");
 
+    console.log("Selected booking:", match);
+    console.log("Booking ID:", match._id);
     setSelected(match);
     setPage("customer-details");
   };

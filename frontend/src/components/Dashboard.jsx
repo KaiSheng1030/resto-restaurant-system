@@ -57,11 +57,12 @@ export default function Dashboard({ lang = 'en' }) {
     return () => clearInterval(timer);
   }, []);
 
-  // ⭐ 动态统计
+  // ⭐ 只统计未取消的预订
+  const activeBookings = bookings.filter(b => b.status !== "cancelled");
   const stats = {
-    today: bookings.length,
-    availableTables: Math.max(0, tables.length - bookings.length),
-    customers: bookings.reduce((sum, b) => sum + Number(b.people || 0), 0),
+    today: activeBookings.length,
+    availableTables: Math.max(0, tables.length - activeBookings.length),
+    customers: activeBookings.reduce((sum, b) => sum + Number(b.people || 0), 0),
   };
 
   return (
@@ -87,10 +88,10 @@ export default function Dashboard({ lang = 'en' }) {
       </div>
 
       <h2 className="section-title">{t[lang].tableStatus}</h2>
-      <Tables bookings={bookings} tables={tables} lang={lang} />
+      <Tables bookings={activeBookings} tables={tables} lang={lang} />
 
       <h2 className="section-title">{t[lang].analytics}</h2>
-      <Charts bookings={bookings} tables={tables} lang={lang} />
+      <Charts bookings={activeBookings} tables={tables} lang={lang} />
     </div>
   );
 }

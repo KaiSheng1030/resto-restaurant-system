@@ -47,7 +47,7 @@ export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' })
     const load = async () => {
       try {
         const res = await getBookings();
-        setBookings(res.data || []);
+        setBookings((res.data || []).filter(b => b.status !== "cancelled"));
       } catch (err) {
         console.log("Failed to fetch bookings");
       }
@@ -123,7 +123,11 @@ export default function CustomerHome({ setPage, setSelectedTable, lang = 'en' })
       </div>
 
       <div className="cust-table-grid">
-        {(tables || []).map((table) => {
+        {[...(tables || [])].sort((a, b) => {
+          const idA = typeof a === 'object' ? a.id : a;
+          const idB = typeof b === 'object' ? b.id : b;
+          return Number(idA) - Number(idB);
+        }).map((table) => {
           const tableId = typeof table === 'object' ? table.id : table;
           const capacity = typeof table === 'object' ? table.capacity : 4;
           

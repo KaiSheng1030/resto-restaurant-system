@@ -8,7 +8,8 @@ const bookingSchema = new mongoose.Schema({
   table: Number,
   time: String,
   date: String,
-  status: String
+  status: String,
+  cancelled: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model("Booking", bookingSchema);

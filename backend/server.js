@@ -1,3 +1,4 @@
+console.log("Server.js is starting...");
 // --- Azure MongoDB Connection ---
 // --- Azure MongoDB Connection ---
 const mongoose = require("mongoose");
@@ -27,5 +28,5 @@ app.use("/api/login", loginRoutes);
 app.use("/api/tables", tableRoutes);
 app.use("/api/floorplan", floorplanRoutes);
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));

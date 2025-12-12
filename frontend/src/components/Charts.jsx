@@ -53,8 +53,10 @@ export default function Charts({ bookings = [], tables = [], lang = 'en' }) {
      READ TABLE LIST
   ======================== */
   const tableIds = tables.map(t => (typeof t === "object" ? t.id : t));
+  // Sort numerically
+  const sortedIds = tableIds.sort((a, b) => Number(a) - Number(b));
 
-  const safeTables = tableIds.length > 0 ? tableIds : [1, 2, 3, 4, 5];
+  const safeTables = sortedIds.length > 0 ? sortedIds : [1, 2, 3, 4, 5];
 
   const usage = safeTables.map(
     tblId => bookings.filter(b => Number(b.table) === tblId).length

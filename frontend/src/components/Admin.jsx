@@ -9,11 +9,11 @@ export default function Admin({ setToast, lang = 'en' }) {
   const [confirmId, setConfirmId] = useState(null);
   const [editData, setEditData] = useState(null);
 
-  // Load bookings
+  // Load bookings with polling for real-time sync
   const load = async () => {
     try {
       const res = await getBookings();
-      setBookings(res.data);
+      setBookings(res.data || []);
     } catch (err) {
       console.log("Error loading bookings", err);
     }
@@ -21,10 +21,13 @@ export default function Admin({ setToast, lang = 'en' }) {
 
   useEffect(() => {
     load();
+    const interval = setInterval(load, 2000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Search filter
-  const filtered = bookings.filter((b) => {
+  // Only show active bookings and apply search filter
+  const activeBookings = bookings.filter(b => b.status !== "cancelled");
+  const filtered = activeBookings.filter((b) => {
     const q = search.toLowerCase();
     return (
       b.name.toLowerCase().includes(q) ||
@@ -34,8 +37,8 @@ export default function Admin({ setToast, lang = 'en' }) {
   });
 
   // Cancel booking
-  const handleCancel = async (id) => {
-    await cancelBooking(id);
+  const handleCancel = async (_id) => {
+    await cancelBooking(_id);
     setToast("Booking canceled!");
     load();
   };
@@ -92,7 +95,7 @@ export default function Admin({ setToast, lang = 'en' }) {
 
       {/* Booking list */}
       {filtered.map((b) => (
-        <div className="booking-card" key={b.id} style={{ position: 'relative' }}>
+        <div className="booking-card" key={b._id} style={{ position: 'relative' }}>
           <div className="booking-info">
             <span className="booking-name">{b.name}</span>
             <span className="booking-meta">
@@ -112,13 +115,13 @@ export default function Admin({ setToast, lang = 'en' }) {
               {t[lang].edit}
             </button>
 
-            <button className="danger-btn" onClick={() => setConfirmId(b.id)}>
+            <button className="danger-btn" onClick={() => setConfirmId(b._id)}>
               {t[lang].cancel}
             </button>
           </div>
 
           {/* Show confirm dialog inline for this specific booking */}
-          {confirmId === b.id && (
+          {confirmId === b._id && (
             <ConfirmDialog
               lang={lang}
               onCancel={() => setConfirmId(null)}
@@ -127,17 +130,22 @@ export default function Admin({ setToast, lang = 'en' }) {
                 setConfirmId(null);
                 setToast(t[lang].bookingCanceled);
               }}
+              style={{
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
             />
           )}
 
           {/* Show edit dialog inline for this specific booking */}
-          {editData && editData.id === b.id && (
+          {editData && editData._id === b._id && (
             <EditDialog
               lang={lang}
               data={editData}
               onCancel={() => setEditData(null)}
               onSave={async (newData) => {
-                await updateBooking(editData.id, newData);
+                await updateBooking(editData._id, newData);
                 setToast(t[lang].bookingUpdated);
                 setEditData(null);
                 load();

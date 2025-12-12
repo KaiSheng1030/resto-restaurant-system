@@ -82,7 +82,7 @@ router.get("/history", async (req, res) => {
 /* ----------------- READ BY TABLE ----------------- */
 router.get("/table/:id", async (req, res) => {
   const tableId = Number(req.params.id);
-  const filtered = await Booking.find({ table: tableId });
+  const filtered = await Booking.find({ table: tableId, status: { $ne: "cancelled" } });
   res.json(filtered);
 });
 
@@ -112,12 +112,28 @@ router.patch("/:id", async (req, res) => {
 /* ----------------- DELETE ----------------- */
 router.delete("/:id", async (req, res) => {
   const id = req.params.id;
-  const booking = await Booking.findById(id);
+  console.log("Cancel request for booking ID:", id);
+  if (!id || id === "undefined") {
+    console.log("Invalid or missing booking ID");
+    return res.status(400).json({ error: "Invalid or missing booking ID" });
+  }
+  let booking;
+  try {
+    booking = await Booking.findById(id);
+  } catch (err) {
+    console.log("Invalid booking ID format:", err);
+    return res.status(400).json({ error: "Invalid booking ID format" });
+  }
   if (booking) {
     booking.status = "cancelled";
+    booking.cancelled = true;
     await booking.save();
+    console.log("Booking cancelled successfully:", booking._id);
+    return res.json({ success: true });
+  } else {
+    console.log("Booking not found for ID:", id);
+    return res.status(404).json({ error: "Booking not found" });
   }
-  res.json({ success: true });
 });
 
 module.exports = router;

@@ -41,6 +41,9 @@ router.post("/", (req, res) => {
 ------------------------------ */
 router.delete("/:id", (req, res) => {
   const id = Number(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Invalid table ID" });
+  }
   (async () => {
     const exists = await Table.findOne({ id });
     if (!exists) return res.status(404).json({ error: "Table not found" });

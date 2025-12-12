@@ -15,7 +15,13 @@ router.get("/", async (req, res) => {
 // GET /api/floorplan/layout - Get saved floor plan layout
 router.get("/layout", (req, res) => {
   Floorplan.findOne()
-    .then(layout => res.json(layout || {}))
+    .then(doc => {
+      if (doc && doc.layout) {
+        res.json(doc.layout);
+      } else {
+        res.json({});
+      }
+    })
     .catch(err => {
       console.error("Error reading floor plan layout:", err);
       res.status(500).json({ error: "Failed to read floor plan layout" });

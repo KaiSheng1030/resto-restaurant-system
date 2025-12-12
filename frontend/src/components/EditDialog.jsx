@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./EditDialog.css";
 
-export default function EditDialog({ data, onCancel, onSave, lang = 'en' }) {
+export default function EditDialog({ data, onCancel, onSave, lang = 'en', style = {} }) {
     const t = {
       en: {
         editReservation: "Edit Reservation",
@@ -41,7 +41,7 @@ export default function EditDialog({ data, onCancel, onSave, lang = 'en' }) {
         onClick={onCancel}
       />
       
-      <div className="edit-inline-box" onClick={(e) => e.stopPropagation()}>
+      <div className="edit-inline-box" style={style} onClick={(e) => e.stopPropagation()}>
       <h4 className="edit-inline-title">{t[lang].editReservation}</h4>
 
       <div className="edit-inline-field">
@@ -111,7 +111,14 @@ export default function EditDialog({ data, onCancel, onSave, lang = 'en' }) {
         <button
           className="edit-inline-save"
           onClick={() =>
-            onSave({ name, phone, people, table, time, date })
+            onSave({
+              name,
+              phone,
+              people: Number(people),
+              table: Number(table),
+              time,
+              date
+            })
           }
         >
           {t[lang].save}

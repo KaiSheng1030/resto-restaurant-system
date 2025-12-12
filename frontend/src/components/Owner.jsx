@@ -13,7 +13,6 @@ import {
 import ConfirmDialog from "./ConfirmDialog";
 import EditDialog from "./EditDialog";
 import Toast from "./Toast";
-import FloorPlan from "./FloorPlan";
 import FloorPlanEditor from "./FloorPlanEditor";
 
 import Charts from "./Charts";
@@ -96,11 +95,40 @@ export default function Owner({ lang = "en", userRole }) {
   const [tables, setTables] = useState([]);
   const [newTableNum, setNewTableNum] = useState("");
   const [newTableCapacity, setNewTableCapacity] = useState("");
-  const [confirmData, setConfirmData] = useState(null);
-  const [editData, setEditData] = useState(null);
+
+  // Dialog State
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [dialogType, setDialogType] = useState(null);
+
   const [toast, setToast] = useState("");
   const [showEditor, setShowEditor] = useState(false);
   const [floorPlanKey, setFloorPlanKey] = useState(0);
+
+  /* ===============================
+      HELPER: Get Safe ID (CRITICAL FIX)
+      We append + "" to force it to be a string. 
+      This prevents React from crashing if the DB returns an Object ID.
+  =============================== */
+  const getID = (item) => {
+    if (!item) return null;
+    const val = item._id || item.id || item.booking_id;
+    // Convert to string to ensure React keys/rendering don't crash
+    return val ? val.toString() : null;
+  };
+
+  /* ===============================
+      Active Booking Helper
+  =============================== */
+  const activeBooking = bookings.find((b) => getID(b) === selectedBookingId);
+
+  /* ===============================
+      Helper: Handle Button Click
+  =============================== */
+  const handleButtonClick = (e, bookingId, type) => {
+    setSelectedBookingId(bookingId);
+    setDialogType(type);
+    setConfirmDeleteId(null);
+  };
 
   /* ===============================
         LOAD DATA
@@ -108,7 +136,13 @@ export default function Owner({ lang = "en", userRole }) {
   const loadTables = async () => {
     try {
       const res = await getTables();
-      setTables(res.data || []);
+      // Sort tables by numeric id in ascending order
+      const sorted = (res.data || []).sort((a, b) => {
+        const idA = typeof a === 'object' ? a.id : a;
+        const idB = typeof b === 'object' ? b.id : b;
+        return Number(idA) - Number(idB);
+      });
+      setTables(sorted);
     } catch {
       setTables([]);
     }
@@ -126,14 +160,20 @@ export default function Owner({ lang = "en", userRole }) {
   useEffect(() => {
     loadTables();
     loadBookings();
+    const interval = setInterval(() => {
+      loadTables();
+      loadBookings();
+    }, 2000);
+    return () => clearInterval(interval);
   }, []);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   /* ===============================
         DASHBOARD NUMBERS
   =============================== */
-  const today = bookings.length;
-  const customers = bookings.reduce((s, b) => s + Number(b.people), 0);
+  const activeBookings = bookings.filter((b) => b.status !== "cancelled");
+  const today = activeBookings.length;
+  const customers = activeBookings.reduce((s, b) => s + Number(b.people), 0);
 
   /* ===============================
         CUSTOMER PAGE
@@ -152,25 +192,34 @@ export default function Owner({ lang = "en", userRole }) {
   =============================== */
   const handleAddTable = async () => {
     if (!newTableNum.trim()) {
-      const msg = lang === 'en' ? "❌ Please fill in table number" : "❌ 请填写餐桌编号";
+      const msg =
+        lang === "en" ? "❌ Please fill in table number" : "❌ 请填写餐桌编号";
       setToast(msg);
       return;
     }
-    
+
     if (!newTableCapacity.trim()) {
-      setToast(lang === 'en' ? "❌ Please fill in table capacity" : "❌ 请填写餐桌容量");
+      setToast(
+        lang === "en" ? "❌ Please fill in table capacity" : "❌ 请填写餐桌容量"
+      );
       return;
     }
 
-    // Check if table number already exists
     const tableNum = Number(newTableNum);
-    const tableExists = tables.some(tbl => {
-      const tableId = typeof tbl === 'object' ? tbl.id : tbl;
-      return tableId === tableNum;
+    const tableExists = tables.some((tbl) => {
+      // Use logic ID for check, or table_number if available
+      const checkId = (typeof tbl === "object" && tbl.table_number) 
+        ? tbl.table_number 
+        : (typeof tbl === "object" ? getID(tbl) : tbl);
+        
+      // Ensure we compare numbers to numbers if possible
+      return checkId == tableNum;
     });
 
     if (tableExists) {
-      setToast(lang === 'en' ? "❌ Table number already exists" : "❌ 餐桌编号已存在");
+      setToast(
+        lang === "en" ? "❌ Table number already exists" : "❌ 餐桌编号已存在"
+      );
       return;
     }
 
@@ -179,47 +228,81 @@ export default function Owner({ lang = "en", userRole }) {
       setNewTableNum("");
       setNewTableCapacity("");
       await loadTables();
-      
-      // Add default position for new table to backend
       await addDefaultPositionForNewTable(tableNum, Number(newTableCapacity));
-      
-      setFloorPlanKey(prev => prev + 1);
-      setToast(lang === 'en' ? "✅ Table added successfully!" : "✅ 餐桌添加成功！");
+      setFloorPlanKey((prev) => prev + 1);
+      setToast(
+        lang === "en" ? "✅ Table added successfully!" : "✅ 餐桌添加成功！"
+      );
     } catch (err) {
-      const errorMsg = err.response?.data?.error || (lang === 'en' ? "Failed to add table" : "添加餐桌失败");
+      const errorMsg =
+        err.response?.data?.error ||
+        (lang === "en" ? "Failed to add table" : "添加餐桌失败");
       setToast(`❌ ${errorMsg}`);
     }
   };
 
-  /* ===============================
-        DELETE TABLE
-  =============================== */
-  const handleDeleteTable = async (id) => {
+  // Confirm dialog state for table deletion
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deleteTablePosition, setDeleteTablePosition] = useState({ x: 0, y: 0 });
+  const tableManagerRef = React.useRef(null);
+
+  const handleDeleteTable = (id, event) => {
+    // Get the position of the clicked delete button's parent row (table card)
+    const button = event.currentTarget;
+    const tableRow = button.closest('.tm-row');
+    
+    if (tableRow) {
+      const rect = tableRow.getBoundingClientRect();
+      // Position dialog at the center of the table card, below and to the right
+      setDeleteTablePosition({
+        x: rect.left + rect.width / 2 + 440,  // Center horizontally + 440px offset right
+        y: rect.top + rect.height / 2 + 440  // Center vertically + 440px offset down
+      });
+    } else {
+      // Fallback to button position if row not found
+      const rect = button.getBoundingClientRect();
+      setDeleteTablePosition({
+        x: rect.left + rect.width / 2 + 440,
+        y: rect.top + rect.height / 2 + 440
+      });
+    }
+    setConfirmDeleteId(id);
+    setSelectedBookingId(null);
+    setDialogType(null);
+  };
+
+  const confirmDeleteTable = async () => {
+    if (confirmDeleteId == null) return;
     try {
-      await deleteTable(id);
+      console.log("Deleting table with ID:", confirmDeleteId);
+      await deleteTable(confirmDeleteId);
       await loadTables();
-      
-      // Remove table position from backend
-      await removeTablePositionFromBackend(id);
-      
-      setFloorPlanKey(prev => prev + 1);
-      const msg = lang === 'en' ? `✅ Table ${id} deleted successfully!` : `✅ 餐桌 ${id} 已成功删除！`;
+      await removeTablePositionFromBackend(confirmDeleteId);
+      setFloorPlanKey((prev) => prev + 1);
+      const msg =
+        lang === "en"
+          ? `✅ Table deleted successfully!`
+          : `✅ 餐桌已成功删除！`;
       setToast(msg);
-    } catch {
-      const msg = lang === 'en' ? `❌ Failed to delete table ${id}` : `❌ 删除餐桌 ${id} 失败`;
+    } catch (err) {
+      console.error("Delete table error:", err);
+      const msg =
+        lang === "en"
+          ? `❌ Failed to delete table: ${err?.response?.data?.error || err.message}`
+          : `❌ 删除餐桌失败: ${err?.response?.data?.error || err.message}`;
       setToast(msg);
     }
+    setConfirmDeleteId(null);
   };
 
   /* ===============================
-        HELPER: Add default position for new table
+        HELPER: Add default position
   =============================== */
   const addDefaultPositionForNewTable = async (tableId, capacity) => {
     try {
       const res = await getFloorPlanLayout();
       const currentLayout = res.data || {};
-      
-      // Calculate default position
+
       const positions = {
         1: { top: "20%", left: "10%" },
         2: { top: "42%", left: "10%" },
@@ -235,21 +318,20 @@ export default function Owner({ lang = "en", userRole }) {
         12: { top: "75%", left: "53%" },
         13: { top: "75%", left: "72%" },
       };
-      
+
       const defaultPos = positions[tableId] || {
         top: `${85 + Math.floor((tableId - 14) / 3) * 12}%`,
         left: `${15 + ((tableId - 14) % 3) * 30}%`,
       };
-      
-      // Add new table position to layout
+
       const updatedLayout = {
         ...currentLayout,
         tables: {
           ...(currentLayout.tables || {}),
-          [tableId]: defaultPos
-        }
+          [tableId]: defaultPos,
+        },
       };
-      
+
       await saveFloorPlanLayout(updatedLayout);
     } catch (err) {
       console.error("Failed to save default position for new table:", err);
@@ -257,21 +339,16 @@ export default function Owner({ lang = "en", userRole }) {
   };
 
   /* ===============================
-        HELPER: Remove table position from backend
+        HELPER: Remove table position
   =============================== */
   const removeTablePositionFromBackend = async (tableId) => {
     try {
       const res = await getFloorPlanLayout();
       const currentLayout = res.data || {};
-      
+
       if (currentLayout.tables && currentLayout.tables[tableId]) {
         const { [tableId]: removed, ...remainingTables } = currentLayout.tables;
-        
-        const updatedLayout = {
-          ...currentLayout,
-          tables: remainingTables
-        };
-        
+        const updatedLayout = { ...currentLayout, tables: remainingTables };
         await saveFloorPlanLayout(updatedLayout);
       }
     } catch (err) {
@@ -310,22 +387,37 @@ export default function Owner({ lang = "en", userRole }) {
               </div>
             </div>
 
-            <div className="table-manager">
+            <div className="table-manager" ref={tableManagerRef}>
               <h3 className="tm-title">{t[lang].tableManager}</h3>
-              
               <div className="tm-list">
                 {tables.map((tbl) => {
-                  const id = typeof tbl === "object" ? tbl.id : tbl;
+                  // Use numeric id for backend operations
+                  const numericId = typeof tbl === "object" ? tbl.id : tbl;
+                  const uniqueId = typeof tbl === "object" ? getID(tbl) : tbl.toString();
+                  
+                  // DISPLAY ID - Try to find a human-readable number
+                  let displayId = numericId || uniqueId;
+                  if (typeof tbl === "object") {
+                     if (tbl.table_number) displayId = tbl.table_number;
+                     else if (tbl.id) displayId = tbl.id;
+                  }
+
                   const cap = typeof tbl === "object" ? tbl.capacity : "N/A";
+                  
+                  const isBeingDeleted = confirmDeleteId === numericId;
 
                   return (
-                    <div key={id} className="tm-row">
+                    <div
+                      key={uniqueId}
+                      className="tm-row"
+                      style={{ position: "relative" }}
+                    >
                       <span className="tm-table-info">
-                        {t[lang].table} {id} ({cap} {t[lang].seats})
+                        {t[lang].table} {displayId} ({cap} {t[lang].seats})
                       </span>
                       <button
                         className="tm-delete"
-                        onClick={() => handleDeleteTable(id)}
+                        onClick={(e) => handleDeleteTable(numericId, e)}
                       >
                         {t[lang].delete}
                       </button>
@@ -353,99 +445,83 @@ export default function Owner({ lang = "en", userRole }) {
               </div>
             </div>
 
-            <Charts bookings={bookings} tables={tables} lang={lang} />
+            <Charts bookings={activeBookings} tables={tables} lang={lang} />
 
             <h3 style={{ marginTop: 40 }}>{t[lang].allReservations}</h3>
-
-            {bookings.map((b) => (
-              <div key={b.id} className="booking-card">
-                <div className="booking-info">
-                  <span className="booking-name">{b.name}</span>
-                  <span className="booking-meta">
-                    {b.people} {t[lang].people} • {t[lang].table} {b.table}
-                  </span>
-                  <span className="booking-meta">{b.time}</span>
-                  <span className="booking-meta">
-                    📞 {b.phone || t[lang].noPhone}
-                  </span>
-                  <span className="booking-meta">
-                    📅 {b.date || t[lang].noDate}
-                  </span>
-                </div>
-
-                <div className="booking-actions">
-                  <button
-                    className="mini-btn"
-                    onClick={() => setEditData(b.id)}
-                  >
-                    {t[lang].edit}
-                  </button>
-
-                  <button
-                    className="danger-btn"
-                    onClick={() =>
-                      setConfirmData({ bookingId: b.id, name: b.name })
-                    }
-                  >
-                    {t[lang].cancel}
-                  </button>
-
-                  {/* Render dialogs as siblings to buttons */}
-                  {editData === b.id && (
-                    <div style={{ position: 'relative', zIndex: 10 }}>
-                      <EditDialog
-                        data={b}
-                        onCancel={() => setEditData(null)}
-                        onSave={async (u) => {
-                          await updateBooking(b.id, u);
-                          setEditData(null);
-                          loadBookings();
-                        }}
-                        lang={lang}
-                      />
+            {bookings
+              .filter((b) => b.status !== "cancelled")
+              .map((b) => {
+                const safeId = getID(b);
+                
+                return (
+                  <div key={safeId} className="booking-card">
+                    <div className="booking-info">
+                      <span className="booking-name">{b.name}</span>
+                      <span className="booking-meta">
+                        {b.people} {t[lang].people} • {t[lang].table} {b.table}
+                      </span>
+                      <span className="booking-meta">{b.time}</span>
+                      <span className="booking-meta">
+                        📞 {b.phone || t[lang].noPhone}
+                      </span>
+                      <span className="booking-meta">
+                        📅 {b.date || t[lang].noDate}
+                      </span>
                     </div>
-                  )}
 
-                  {confirmData?.bookingId === b.id && (
-                    <div style={{ position: 'relative', zIndex: 10 }}>
-                      <ConfirmDialog
-                        message={`${t[lang].cancelReservation} ${b.name}?`}
-                        onCancel={() => setConfirmData(null)}
-                        onConfirm={async () => {
-                          await cancelBooking(b.id);
-                          setConfirmData(null);
-                          loadBookings();
-                        }}
-                        lang={lang}
-                      />
+                    <div
+                      className="booking-actions"
+                      style={{ position: "relative" }}
+                    >
+                      <button
+                        className="mini-btn"
+                        onClick={(e) => handleButtonClick(e, safeId, "edit")}
+                      >
+                        {t[lang].edit}
+                      </button>
+
+                      <button
+                        className="danger-btn"
+                        onClick={(e) => handleButtonClick(e, safeId, "confirm")}
+                      >
+                        {t[lang].cancel}
+                      </button>
                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
+                  </div>
+                );
+              })}
 
-            {/* Edit Floor Plan Button */}
-            <div style={{ marginTop: '60px', marginBottom: '-60px', marginLeft: '60px' }}>
+            <div
+              style={{
+                marginTop: "60px",
+                marginBottom: "-60px",
+                marginLeft: "60px",
+              }}
+            >
               {isOwner && (
                 <button
                   className="pill-btn"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    fontSize: '14px',
-                    padding: '10px 20px',
-                    borderRadius: '10px',
-                    position: 'relative',
-                    zIndex: 200
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    color: "white",
+                    fontSize: "14px",
+                    padding: "10px 20px",
+                    borderRadius: "10px",
+                    position: "relative",
+                    zIndex: 200,
                   }}
                   onClick={() => {
                     setShowEditor(true);
-                    // Scroll to center of page smoothly when opening editor
                     setTimeout(() => {
-                      const scrollHeight = document.documentElement.scrollHeight;
+                      const scrollHeight =
+                        document.documentElement.scrollHeight;
                       const windowHeight = window.innerHeight;
                       const centerPosition = (scrollHeight - windowHeight) / 2;
-                      window.scrollTo({ top: centerPosition, behavior: 'smooth' });
+                      window.scrollTo({
+                        top: centerPosition,
+                        behavior: "smooth",
+                      });
                     }, 50);
                   }}
                 >
@@ -475,16 +551,19 @@ export default function Owner({ lang = "en", userRole }) {
             </div>
 
             <h3>{t[lang].tableManager}</h3>
-
             <div className="card" style={{ padding: 20 }}>
               {tables.map((tbl) => {
-                const id = typeof tbl === "object" ? tbl.id : tbl;
+                const uniqueId = typeof tbl === "object" ? getID(tbl) : tbl.toString();
+                let displayId = uniqueId;
+                if (typeof tbl === "object" && (tbl.table_number || tbl.id)) {
+                    displayId = tbl.table_number || tbl.id;
+                }
                 const cap = typeof tbl === "object" ? tbl.capacity : "N/A";
-
+                
                 return (
-                  <div key={id} className="table-list-item">
+                  <div key={uniqueId} className="table-list-item">
                     <span>
-                      {t[lang].table} {id} ({cap} {t[lang].seats})
+                      {t[lang].table} {displayId} ({cap} {t[lang].seats})
                     </span>
                   </div>
                 );
@@ -495,9 +574,7 @@ export default function Owner({ lang = "en", userRole }) {
 
         {/* CUSTOMER VIEW */}
         {isCustomer && (
-          <>
-            <h3 style={{ marginTop: 16 }}>{t[lang].customerLiveView}</h3>
-          </>
+          <h3 style={{ marginTop: 16 }}>{t[lang].customerLiveView}</h3>
         )}
 
         {/* LIVE VIEW */}
@@ -535,13 +612,91 @@ export default function Owner({ lang = "en", userRole }) {
           tables={tables}
           onClose={(needsRefresh) => {
             setShowEditor(false);
-            // Force re-render of FloorPlan component by updating key
             if (needsRefresh) {
               loadTables();
-              setFloorPlanKey(prev => prev + 1); // Force CustomerHome to reload floor plan
+              setFloorPlanKey((prev) => prev + 1);
             }
           }}
           lang={lang}
+        />
+      )}
+
+      {/* ========================================================
+          GLOBAL DIALOGS (Fixed/Centered Position)
+      ======================================================== */}
+
+      {/* Table Delete Confirm Dialog */}
+      {confirmDeleteId !== null && !dialogType && (
+        <ConfirmDialog
+          message={`${lang === "en" ? "Delete Table" : "删除餐桌"} ${confirmDeleteId}?`}
+          onCancel={() => setConfirmDeleteId(null)}
+          onConfirm={confirmDeleteTable}
+          lang={lang}
+          style={{
+            position: "fixed",
+            top: `${deleteTablePosition.y}px`,
+            left: `${deleteTablePosition.x}px`,
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
+          }}
+        />
+      )}
+
+      {/* Booking Cancel Confirm Dialog */}
+      {dialogType === "confirm" && activeBooking && !confirmDeleteId && (
+        <ConfirmDialog
+          message={`${t[lang].cancelReservation} ${activeBooking.name}?`}
+          onCancel={() => {
+            setDialogType(null);
+            setSelectedBookingId(null);
+          }}
+          onConfirm={async () => {
+            const idToDelete = getID(activeBooking);
+            if (!idToDelete) {
+              setToast("Error: Missing booking ID");
+              return;
+            }
+            await cancelBooking(idToDelete);
+            setDialogType(null);
+            setSelectedBookingId(null);
+            loadBookings();
+          }}
+          lang={lang}
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+          }}
+        />
+      )}
+
+      {/* Booking Edit Dialog */}
+      {dialogType === "edit" && activeBooking && !confirmDeleteId && (
+        <EditDialog
+          data={activeBooking}
+          onCancel={() => {
+            setDialogType(null);
+            setSelectedBookingId(null);
+          }}
+          onSave={async (u) => {
+            const idToUpdate = getID(activeBooking);
+            await updateBooking(idToUpdate, u);
+            setDialogType(null);
+            setSelectedBookingId(null);
+            loadBookings();
+          }}
+          lang={lang}
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+          }}
         />
       )}
     </>

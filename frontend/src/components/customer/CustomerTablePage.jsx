@@ -28,7 +28,7 @@ export default function CustomerTablePage({ tableId, setPage, lang = 'en' }) {
     const load = async () => {
       try {
         const res = await getBookings();
-        setBookings(res.data || []);
+        setBookings((res.data || []).filter(b => b.status !== "cancelled"));
       } catch (e) {
         console.log("Failed to load bookings");
       }

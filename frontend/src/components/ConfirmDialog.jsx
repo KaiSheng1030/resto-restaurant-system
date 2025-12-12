@@ -1,7 +1,7 @@
 import React from "react";
 import "./ConfirmDialog.css";
 
-export default function ConfirmDialog({ message, onConfirm, onCancel, lang = 'en' }) {
+export default function ConfirmDialog({ message, onConfirm, onCancel, lang = 'en', style = {} }) {
     const t = {
       en: {
         title: "Confirm cancellation",
@@ -22,7 +22,7 @@ export default function ConfirmDialog({ message, onConfirm, onCancel, lang = 'en
         onClick={onCancel}
       />
       
-      <div className="confirm-inline-box" onClick={(e) => e.stopPropagation()}>
+      <div className="confirm-inline-box" style={style} onClick={(e) => e.stopPropagation()}>
       <h4 className="confirm-inline-title">{t[lang].title}</h4>
 
       <p className="confirm-inline-msg">{message}</p>

@@ -48,7 +48,9 @@ exports.cancel = async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (booking) {
       TableService.releaseTable(booking.table);
-      await Booking.deleteOne({ _id: req.params.id });
+      booking.status = "cancelled";
+      booking.cancelled = true;
+      await booking.save();
       res.json({ message: "Booking cancelled" });
     } else {
       res.status(404).json({ message: "Booking not found" });
