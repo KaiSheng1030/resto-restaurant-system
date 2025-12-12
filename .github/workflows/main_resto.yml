@@ -63,5 +63,5 @@ jobs:
         with:
           app-name: 'Resto'
           slot-name: 'Production'
-          package: ./node-app
+          package: ./node-app/backend
           
