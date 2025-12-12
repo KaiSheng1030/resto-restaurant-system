@@ -1,0 +1,343 @@
+/* ==========================================
+   RESTAURANT FLOOR PLAN
+========================================== */
+
+.floor-plan-container {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.floor-plan-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 18px;
+  letter-spacing: -0.3px;
+  text-align: center;
+}
+
+.floor-plan-map {
+  position: relative;
+  width: 100%;
+  height: 450px;
+  background: var(--card);
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .floor-plan-map {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Floor Elements (Counter, Kitchen, etc.) */
+.floor-element {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 14px;
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid #000;
+  font-size: 9px;
+  font-weight: 700;
+  color: #000;
+  z-index: 2;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 0.7;
+}
+
+[data-theme="dark"] .floor-element {
+  border-color: #fff;
+  color: #fff;
+}
+
+.element-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.element-label {
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.floor-element.entrance {
+  font-size: 10px;
+  padding: 10px 28px;
+  border-width: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 7px,
+    rgba(0,0,0,0.05) 7px,
+    rgba(0,0,0,0.05) 14px
+  );
+}
+
+[data-theme="dark"] .floor-element.entrance {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 7px,
+    rgba(255,255,255,0.05) 7px,
+    rgba(255,255,255,0.05) 14px
+  );
+}
+
+.floor-element.counter {
+  padding: 14px 22px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 6px,
+    rgba(0,0,0,0.1) 6px,
+    rgba(0,0,0,0.1) 8px
+  );
+}
+
+[data-theme="dark"] .floor-element.counter {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 6px,
+    rgba(255,255,255,0.1) 6px,
+    rgba(255,255,255,0.1) 8px
+  );
+}
+
+.floor-element.kitchen {
+  padding: 0;
+  border-width: 3px;
+  border-style: dashed;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(0,0,0,0.04) 8px,
+    rgba(0,0,0,0.04) 16px
+  );
+  position: relative;
+}
+
+.floor-element.kitchen::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 2px solid #000;
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+[data-theme="dark"] .floor-element.kitchen {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(255,255,255,0.04) 8px,
+    rgba(255,255,255,0.04) 16px
+  );
+}
+
+[data-theme="dark"] .floor-element.kitchen::before {
+  border-color: #fff;
+}
+
+.floor-element.restroom {
+  padding: 6px 9px;
+  width: 32px;
+  height: 40px;
+  border-radius: 3px;
+  border-style: solid;
+  border-width: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 8px;
+}
+
+.floor-element.restroom::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border: 2px solid #000;
+  border-radius: 50%;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .floor-element.restroom::after {
+  border-color: #fff;
+}
+
+.floor-element.restroom .element-label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Window indicators - simple lines */
+.window-indicator {
+  position: absolute;
+  width: 5px;
+  height: 42px;
+  background: #000;
+  border: 2px solid #000;
+  border-radius: 2px;
+  z-index: 1;
+  opacity: 0.4;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
+}
+
+[data-theme="dark"] .window-indicator {
+  background: #fff;
+  border-color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
+}
+
+/* Tables */
+.floor-table {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  border-radius: 12px;
+  border: 2px solid;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 3;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+/* Table sizes - circular */
+.floor-table.tiny {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.floor-table.small {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+/* Rectangular tables for 2-capacity */
+.floor-table.small.rectangular {
+  width: 64px;
+  height: 36px;
+  border-radius: 6px;
+}
+
+.floor-table.medium {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+}
+
+.floor-table.large {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+
+.floor-table.xlarge {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+}
+
+/* Table styling */
+.floor-table {
+  border-color: #000;
+  opacity: 1;
+}
+
+[data-theme="dark"] .floor-table {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(30, 30, 30, 0.8);
+}
+
+/* Chairs around table */
+.table-chair {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #000;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .table-chair {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Table content */
+.table-number {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.table-capacity {
+  font-size: 7px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+
+
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  .floor-plan-map {
+    height: 400px;
+  }
+  
+  .floor-table.tiny { width: 40px; height: 40px; border-radius: 50%; }
+  .floor-table.small { width: 50px; height: 50px; border-radius: 50%; }
+  .floor-table.small.rectangular { width: 72px; height: 42px; border-radius: 6px; }
+  .floor-table.medium { width: 60px; height: 60px; border-radius: 50%; }
+  .floor-table.large { width: 72px; height: 72px; border-radius: 50%; }
+  .floor-table.xlarge { width: 86px; height: 86px; border-radius: 50%; }
+  
+  .table-number { font-size: 13px; }
+  .table-capacity { font-size: 8px; }
+  .table-chair { width: 10px; height: 10px; }
+  .element-icon { font-size: 16px; }
+  .element-label { font-size: 9px; }
+}

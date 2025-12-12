@@ -1,29 +1,66 @@
 import React, { useState } from "react";
 import "./EditDialog.css";
 
-export default function EditDialog({ data, onCancel, onSave }) {
+export default function EditDialog({ data, onCancel, onSave, lang = 'en', style = {} }) {
+    const t = {
+      en: {
+        editReservation: "Edit Reservation",
+        name: "Name",
+        phone: "Phone",
+        date: "Date",
+        people: "People",
+        table: "Table",
+        time: "Time",
+        cancel: "Cancel",
+        save: "Save"
+      },
+      zh: {
+        editReservation: "编辑预订",
+        name: "姓名",
+        phone: "电话",
+        date: "日期",
+        people: "人数",
+        table: "桌号",
+        time: "时间",
+        cancel: "取消",
+        save: "保存"
+      }
+    };
   const [name, setName] = useState(data.name);
   const [phone, setPhone] = useState(data.phone || "");
   const [people, setPeople] = useState(data.people);
   const [table, setTable] = useState(data.table);
   const [time, setTime] = useState(data.time);
+  const [date, setDate] = useState(data.date || "");
 
   return (
-    <div className="edit-inline-box">
-      <h4 className="edit-inline-title">Edit Reservation</h4>
+    <>
+      {/* Backdrop - click to close */}
+      <div 
+        className="edit-backdrop" 
+        onClick={onCancel}
+      />
+      
+      <div className="edit-inline-box" style={style} onClick={(e) => e.stopPropagation()}>
+      <h4 className="edit-inline-title">{t[lang].editReservation}</h4>
 
       <div className="edit-inline-field">
-        <label>Name</label>
+        <label>{t[lang].name}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </div>
 
       <div className="edit-inline-field">
-        <label>Phone</label>
+        <label>{t[lang].phone}</label>
         <input value={phone} onChange={(e) => setPhone(e.target.value)} />
       </div>
 
       <div className="edit-inline-field">
-        <label>People</label>
+        <label>{t[lang].date}</label>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().split('T')[0]} />
+      </div>
+
+      <div className="edit-inline-field">
+        <label>{t[lang].people}</label>
         <input
           type="number"
           value={people}
@@ -32,7 +69,7 @@ export default function EditDialog({ data, onCancel, onSave }) {
       </div>
 
       <div className="edit-inline-field">
-        <label>Table</label>
+        <label>{t[lang].table}</label>
         <input
           type="number"
           value={table}
@@ -41,7 +78,7 @@ export default function EditDialog({ data, onCancel, onSave }) {
       </div>
 
       <div className="edit-inline-field">
-        <label>Time</label>
+        <label>{t[lang].time}</label>
         <input
           list="timeSlots"
           value={time}
@@ -69,17 +106,25 @@ export default function EditDialog({ data, onCancel, onSave }) {
 
       <div className="edit-inline-btns">
         <button className="edit-inline-cancel" onClick={onCancel}>
-          Cancel
+          {t[lang].cancel}
         </button>
         <button
           className="edit-inline-save"
           onClick={() =>
-            onSave({ name, phone, people, table, time })
+            onSave({
+              name,
+              phone,
+              people: Number(people),
+              table: Number(table),
+              time,
+              date
+            })
           }
         >
-          Save
+          {t[lang].save}
         </button>
       </div>
     </div>
+    </>
   );
 }

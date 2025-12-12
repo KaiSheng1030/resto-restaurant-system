@@ -1,12 +1,15 @@
-class Booking {
-  constructor(id, name, people, time, table, phone) {
-    this.id = id;
-    this.name = name;
-    this.people = people;
-    this.time = time;
-    this.table = table;
-    this.phone = phone; // ⭐⭐⭐ FIXED
-  }
-}
 
-module.exports = Booking;
+const mongoose = require("mongoose");
+
+const bookingSchema = new mongoose.Schema({
+  name: String,
+  phone: String,
+  people: Number,
+  table: Number,
+  time: String,
+  date: String,
+  status: String,
+  cancelled: { type: Boolean, default: false }
+});
+
+module.exports = mongoose.model("Booking", bookingSchema);

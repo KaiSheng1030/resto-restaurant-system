@@ -1,3 +1,32 @@
+/* ...existing code... */
+
+:root[data-theme="dark"] .edit-inline-box {
+  background: #181f2f !important;
+  color: #e0e6ed !important;
+  box-shadow: 0 4px 15px rgba(16,24,42,0.7) !important;
+}
+:root[data-theme="dark"] .edit-inline-title {
+  color: #e0e6ed !important;
+}
+:root[data-theme="dark"] .edit-inline-field label {
+  color: #bfc8db !important;
+}
+:root[data-theme="dark"] .edit-inline-field input {
+  background: #232e52 !important;
+  color: #e0e6ed !important;
+  border: 1px solid #22304a !important;
+}
+/* Backdrop for clicking outside to close */
+.edit-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 998;
+}
+
 /* ---- 小型内嵌弹窗（不会变大） ---- */
 .edit-inline-box {
   position: absolute;

@@ -1,57 +1,78 @@
+/* ...existing code... */
+
+:root[data-theme="dark"] .confirm-inline-box {
+  background: #181f2f !important;
+  color: #e0e6ed !important;
+  box-shadow: 0 4px 18px rgba(16,24,42,0.7) !important;
+}
+:root[data-theme="dark"] .confirm-inline-title {
+  color: #e0e6ed !important;
+}
+:root[data-theme="dark"] .confirm-inline-msg {
+  color: #bfc8db !important;
+}
+/* Backdrop for clicking outside to close */
+.confirm-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 998;
+}
+
 .confirm-inline-box {
-  position: absolute;
-  right: 10px;
-  top: 50px;
-
-  width: 240px;
+  position: fixed;
+  width: 200px;
   background: #fff;
-  padding: 16px 18px;
-  border-radius: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
   box-shadow: 0 4px 18px rgba(0,0,0,0.18);
-
   display: flex;
   flex-direction: column;
-  gap: 10px;
-
+  gap: 8px;
   z-index: 999;
   animation: fadeIn 0.15s ease-out;
 }
 
 .confirm-inline-title {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .confirm-inline-msg {
-  font-size: 14px;
+  font-size: 12px;
   color: #555;
 }
 
 .confirm-inline-btns {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 
 .confirm-inline-no {
-  padding: 6px 14px;
+  padding: 5px 12px;
   background: #e5e7eb;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .confirm-inline-yes {
-  padding: 6px 14px;
+  padding: 5px 12px;
   background: #ef4444;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

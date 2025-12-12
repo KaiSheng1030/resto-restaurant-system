@@ -1,3 +1,85 @@
+/* My Reservation Modal Dark Mode */
+/* My Reservation Modal Dark Mode - solid dark blue and grey, no purple, no transparency */
+.my-reservation-modal.dark {
+  background: #10182a !important;
+  border: 2px solid #181f2f !important;
+  box-shadow: 0 2px 12px rgba(16,24,42,0.6) !important;
+}
+.my-reservation-title {
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.my-reservation-modal.dark .my-reservation-title {
+  color: #e6eef8 !important;
+  text-shadow: 0 1px 2px #16213e;
+}
+.my-reservation-modal.dark,
+.my-reservation-modal.dark div,
+.my-reservation-modal.dark span,
+.my-reservation-modal.dark p {
+  color: #e6eef8 !important;
+}
+.my-reservation-modal.dark .reservation-card.dark {
+  background: #181f2f !important;
+  border-color: #232e52 !important;
+}
+.my-reservation-modal.dark .reservation-card.dark span,
+.my-reservation-modal.dark .reservation-card.dark div {
+  color: #e6eef8 !important;
+}
+:root[data-theme="dark"] .mini-btn:not(.logout-btn):not(.reservation-btn):not(.notification-btn) {
+  background: #444950 !important;
+  color: #fff !important;
+  border: none !important;
+}
+:root[data-theme="dark"] .mini-btn.logout-btn {
+  background: #ff6b6b !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+:root[data-theme="dark"] .mini-btn.reservation-btn {
+  background: #3b82f6 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+:root[data-theme="dark"] .mini-btn.notification-btn {
+  background: #a58fff !important;
+  color: #fff !important;
+  border: 1px solid #cbbfff !important;
+}
+.notification-btn {
+  background: #e5deff !important;
+  color: #6857d9 !important;
+  border: 1px solid #d4c5ff !important;
+}
+
+.reservation-btn {
+  background: #0066cc !important;
+  color: white !important;
+}
+
+.logout-btn {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+:root[data-theme="dark"] .notification-btn {
+  background: #a58fff !important;
+  color: #fff !important;
+  border: 1px solid #cbbfff !important;
+}
+
+:root[data-theme="dark"] .reservation-btn {
+  background: #232b4d !important;
+  color: #fff !important;
+}
+
+:root[data-theme="dark"] .logout-btn {
+  background: #ff6b6b !important;
+  color: #fff !important;
+}
 /* ---------- Root theme variables ---------- */
 :root{
   --bg: #f4f6f8;
@@ -53,6 +135,11 @@ body{
   gap: 24px;
   min-height:100vh;
   padding: 26px;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.layout:has(.sidebar.collapsed) {
+  grid-template-columns: 70px 1fr;
 }
 
 /* Sidebar */
@@ -68,6 +155,21 @@ body{
   height: calc(100vh - 52px);
   position:sticky;
   top:26px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  padding: 20px 10px;
+}
+
+.sidebar.collapsed .logo {
+  font-size: 16px;
+  text-align: center;
+}
+
+.sidebar.collapsed .logo-dot {
+  display: none;
 }
 
 .logo{
@@ -90,8 +192,57 @@ body{
   color:var(--text);
   font-weight:600;
   transition:all .15s ease;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .nav button:hover{ background:var(--glass); transform:translateY(-2px); }
+.nav button.active {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+  font-weight: 700;
+}
+
+.sidebar.collapsed .nav button {
+  text-align: center;
+  padding: 12px 8px;
+  font-size: 20px;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+  position: fixed;
+  left: 246px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: var(--card);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar-toggle:hover {
+  background: var(--glass);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.layout:has(.sidebar.collapsed) .sidebar-toggle {
+  left: 96px;
+}
+
+[data-theme="dark"] .sidebar-toggle {
+  border-color: rgba(255, 255, 255, 0.1);
+  z-index: 100;
+}
 
 /* Sidebar footer */
 .sidebar-foot{ font-size:12px; color:var(--muted) }
@@ -129,12 +280,30 @@ body{
   font-weight:600;
 }
 
+.notification-btn {
+  font-size: 18px;
+  padding: 10px !important;
+  width: 40px;
+  height: 40px;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .notification-btn {
+  background: white !important;
+  color: #7d6bff !important;
+  border: 1px solid #ddd !important;
+}
+
 /* Page area */
 .page-area{
   margin-top:6px;
   display:flex;
   flex-direction:column;
   gap:18px;
+  position: relative;
 }
 
 /* Cards */
@@ -188,7 +357,12 @@ body{
 .booking-name{ font-weight:700; font-size:16px; }
 .booking-meta{ color:var(--muted); font-size:13px; margin-top:6px; }
 
-.booking-actions{ display:flex; gap:8px; }
+.booking-actions{
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  align-items: center;
+}
 .danger-btn{
   padding:8px 12px;
   background:var(--danger);
@@ -212,17 +386,57 @@ body{
 /* Empty state */
 .empty{ padding:20px; color:var(--muted); }
 
+/* Table list item in Table Manager */
+.table-list-item {
+  padding: 10px 14px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+:root[data-theme="dark"] .table-list-item {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
 /* Toast */
 .toast{
-  position:fixed;
-  right:26px;
-  bottom:26px;
-  background: linear-gradient(90deg, var(--accent-2), var(--accent));
-  color:white;
-  padding:12px 16px;
+  position:fixed !important;
+  right:26px !important;
+  bottom:26px !important;
+  background: linear-gradient(135deg, #7d6bff 0%, #6857d9 100%);
+  color: white;
+  padding:14px 20px;
   border-radius:12px;
-  box-shadow: 0 8px 30px rgba(10,12,20,0.3);
-  font-weight:700;
+  box-shadow: 0 8px 30px rgba(125, 107, 255, 0.3);
+  font-weight:600;
+  font-size:15px;
+  z-index: 99999 !important;
+  animation: slideInUp 0.3s ease;
+  max-width: 400px;
+  word-wrap: break-word;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+:root[data-theme="dark"] .toast {
+  background: linear-gradient(135deg, #7d6bff 0%, #5a48b8 100%);
+  color: white;
+  box-shadow: 0 8px 30px rgba(125, 107, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Dialog */
@@ -277,12 +491,14 @@ body{
 }
 
 .table-card.available {
-  border-left: 6px solid var(--success);
+  border-left: 5px solid var(--success);
+  overflow: hidden;
 }
 
 .table-card.occupied {
-  border-left: 6px solid var(--danger);
+  border-left: 5px solid var(--danger);
   opacity: 0.85;
+  overflow: hidden;
 }
 
 .table-card:hover {
@@ -299,8 +515,9 @@ body{
 }
 
 .available .table-status {
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--success);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(34, 197, 94, 0.18));
+  color: #059669;
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .occupied .table-status {
@@ -935,10 +1152,6 @@ input, button {
   transition: 0.15s;
 }
 
-.tm-row:nth-child(even) {
-  background: #f3f3f3;
-}
-
 .tm-row:hover {
   background: #e7ecff;
 }
@@ -976,4 +1189,333 @@ input, button {
   border-radius: 10px;
   border: none;
   cursor: pointer;
+}
+/* ======================================================
+   🌞 LIGHT THEME VARIABLES (Default)
+====================================================== */
+:root {
+  --bg: #f5f6fa;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --subtext: #475569;
+
+  --primary: #2563eb;
+
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+
+  --btn-primary: #0f172a;
+  --btn-primary-text: white;
+
+  --btn-secondary: #f1f5f9;
+  --btn-secondary-text: #334155;
+
+  --border: #e2e8f0;
+}
+
+/* ======================================================
+   🌙 DARK THEME VARIABLES
+====================================================== */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --text: #f1f5f9;
+  --subtext: #94a3b8;
+
+  --primary: #3b82f6;
+
+  --input-bg: #1e293b;
+  --input-border: #334155;
+
+  --btn-primary: #2563eb;
+  --btn-primary-text: white;
+
+  --btn-secondary: #475569;
+  --btn-secondary-text: white;
+
+  --border: #334155;
+}
+
+/* ======================================================
+   🌙 GLOBAL BACKGROUND
+====================================================== */
+body,
+#root {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* ======================================================
+   🧊 GLOBAL CARD STYLE (Safe)
+   ❗ Removed owner-page from here → NO OUTLINE FIX
+====================================================== */
+.card,
+.login-card,
+.customer-live-card,
+.booking-card,
+.table-manager-card {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* Titles */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text) !important;
+}
+
+/* Text */
+p, span, label {
+  color: var(--subtext) !important;
+}
+
+/* ======================================================
+   ✏️ INPUTS
+====================================================== */
+input,
+select,
+textarea {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--input-border) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--subtext) !important;
+}
+
+/* ======================================================
+   🔘 BUTTONS
+====================================================== */
+button.login-btn,
+.pill-btn.btn-edit,
+.btn-primary {
+  background: var(--btn-primary) !important;
+  color: var(--btn-primary-text) !important;
+  border: none !important;
+}
+
+.pill-btn.btn-cancel,
+.btn-secondary {
+  background: var(--btn-secondary) !important;
+  color: var(--btn-secondary-text) !important;
+}
+
+/* ======================================================
+   📱 PHONE INPUT FIX
+====================================================== */
+.react-tel-input .form-control {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--input-border) !important;
+}
+
+.react-tel-input .flag-dropdown {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--input-border) !important;
+}
+
+.react-tel-input .country-list {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* ======================================================
+   🍏 NO UGLY BLUE OUTLINE (Apple Style)
+====================================================== */
+*:focus,
+*:focus-visible,
+*:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0 !important;
+}
+
+button:focus,
+button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ======================================================
+   🍎 FIX: OWNER PAGE NO BORDER (VERY IMPORTANT)
+   Prevent outline from app.css
+====================================================== */
+.owner-page {
+  border: none !important;
+  box-shadow: none !important;
+  background: var(--bg) !important;
+}
+
+/* ======================================================
+   Language Dropdown Styles
+====================================================== */
+.lang-dropdown {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: var(--card);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown 0.2s ease;
+}
+
+[data-theme="dark"] .lang-dropdown {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lang-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.lang-option:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.lang-option.active {
+  background: rgba(102, 126, 234, 0.12);
+  color: #667eea;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .lang-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .lang-option.active {
+  background: rgba(102, 126, 234, 0.2);
+  color: #8b9ff5;
+}
+
+.lang-option:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .lang-option:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lang-text {
+  flex: 1;
+  text-align: left;
+}
+
+.lang-check {
+  color: #667eea;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+[data-theme="dark"] .lang-check {
+  color: #8b9ff5;
+}
+
+/* ======================================================
+   Booking Hint Pointer
+====================================================== */
+.booking-hint-pointer {
+  position: absolute;
+  bottom: 30px;
+  right: 360px;
+  z-index: 9999;
+  animation: slideInRight 0.5s ease;
+}
+
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.booking-hint-box {
+  background: #6b7280;
+  color: white !important;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 200px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.booking-hint-icon {
+  font-size: 20px;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-8px);
+  }
+}
+
+.booking-hint-text {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: white !important;
+}
+
+[data-theme="dark"] .booking-hint-box {
+  background: #4b5563;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  color: white !important;
 }

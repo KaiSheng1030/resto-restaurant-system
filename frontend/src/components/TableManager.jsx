@@ -1,5 +1,7 @@
+
 import React, { useEffect, useState } from "react";
 import { getTables, addTable, deleteTable } from "../api";
+import ConfirmDialog from "./ConfirmDialog";
 import "./TablesManager.css";
 
 export default function TablesManager() {
@@ -32,9 +34,11 @@ export default function TablesManager() {
   const handleDelete = async (id) => {
     try {
       await deleteTable(id);
+    } catch (err) {
+      console.error("Delete table error:", err);
+      alert(err?.response?.data?.error || "Delete failed");
+    } finally {
       load();
-    } catch {
-      alert("Delete failed");
     }
   };
 
@@ -43,27 +47,56 @@ export default function TablesManager() {
       <h3 className="tm-title">Table Manager</h3>
 
       <div className="tm-list">
-        {tables.map((t) => (
-          <div className="tm-row" key={t}>
-            <span>Table {t}</span>
-            <button className="tm-delete" onClick={() => handleDelete(t)}>
-              Delete
-            </button>
-          </div>
-        ))}
+        {tables.map((t) => {
+          const tableId = typeof t === 'object' ? t.id : t;
+          const capacity = typeof t === 'object' ? t.capacity : 4;
+          return (
+            <div className="tm-row" key={tableId}>
+              <div className="tm-info">
+                <span className="tm-table-number">Table {tableId}</span>
+                <span className="tm-capacity">{capacity} seats</span>
+              </div>
+              <button className="tm-delete" onClick={() => handleDelete(tableId)}>
+                <span>🗑️</span>
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       <div className="tm-add-box">
         <input
-          type="number"
-          placeholder="Enter new table number"
-          value={newTable}
-          onChange={(e) => setNewTable(e.target.value)}
-        />
-        <button className="tm-add" onClick={handleAdd}>
-          Add
-        </button>
-      </div>
-    </div>
-  );
-}
+          return (
+            <div className="table-manager">
+              <h3 className="tm-title">Table Manager</h3>
+
+              <div className="tm-list">
+                {tables.map((t) => {
+                  const tableId = typeof t === 'object' ? t.id : t;
+                  const capacity = typeof t === 'object' ? t.capacity : 4;
+                  return (
+                    <div className="tm-row" key={tableId}>
+                      <div className="tm-info">
+                        <span className="tm-table-number">Table {tableId}</span>
+                        <span className="tm-capacity">{capacity} seats</span>
+                      </div>
+                      <button className="tm-delete" onClick={() => handleDelete(tableId)}>
+                        <span>🗑️</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="tm-add">
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Table Number"
+                  value={newTable}
+                  onChange={e => setNewTable(e.target.value)}
+                />
+                <button className="tm-add-btn" onClick={handleAdd}>Add Table</button>
+              </div>
+            </div>
+          );

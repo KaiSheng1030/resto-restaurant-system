@@ -1,46 +1,48 @@
 import React, { useEffect, useState } from "react";
 
-export default function Tables({ bookings }) {
-  const [tables, setTables] = useState([]);
-
-  // ⭐ 从 localStorage 读取桌子列表
-  useEffect(() => {
-    const saved = localStorage.getItem("tables");
-    if (saved) {
-      setTables(JSON.parse(saved));  // 例如 [1,2,3,4,5,6]
-    } else {
-      setTables([1, 2, 3, 4, 5]); // 默认
+export default function Tables({ bookings, tables = [], lang = 'en' }) {
+  const t = {
+    en: {
+      table: "Table",
+      seats: "seats",
+      occupied: "Occupied",
+      available: "Available"
+    },
+    zh: {
+      table: "餐桌",
+      seats: "个座位",
+      occupied: "占用",
+      available: "可用"
     }
-  }, []);
+  };
 
   // ⭐ 判断桌子是否有人
   const isOccupied = (id) =>
-    bookings.some((b) => Number(b.table) === Number(id));
+    (bookings || []).some((b) => Number(b.table) === Number(id));
 
-  // ⭐ 默认容量（你之前设定）
-  const defaultCap = {
-    1: 2,
-    2: 4,
-    3: 4,
-    4: 6,
-    5: 2,
-  };
+  // Sort tables numerically
+  const sortedTables = [...(tables || [])].sort((a, b) => {
+    const idA = typeof a === 'object' ? a.id : a;
+    const idB = typeof b === 'object' ? b.id : b;
+    return Number(idA) - Number(idB);
+  });
 
   return (
     <div className="table-grid">
-      {tables.map((id) => {
-        const capacity = defaultCap[id] || 4; // 新增桌子默认 4 座
+      {sortedTables.map((tbl) => {
+        const tableId = typeof tbl === 'object' ? tbl.id : tbl;
+        const capacity = typeof tbl === 'object' ? tbl.capacity : 4;
 
         return (
           <div
-            key={id}
-            className={`table-card ${isOccupied(id) ? "occupied" : "available"}`}
+            key={tableId}
+            className={`table-card ${isOccupied(tableId) ? "occupied" : "available"}`}
           >
-            <h3>Table {id}</h3>
-            <p>{capacity} seats</p>
+            <h3>{t[lang].table} {tableId}</h3>
+            <p>{capacity} {t[lang].seats}</p>
 
             <span className="table-status">
-              {isOccupied(id) ? "Occupied" : "Available"}
+              {isOccupied(tableId) ? t[lang].occupied : t[lang].available}
             </span>
           </div>
         );

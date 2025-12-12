@@ -1,0 +1,737 @@
+/* ==========================================
+   FLOOR PLAN EDITOR
+========================================== */
+
+.floor-plan-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+  overflow: hidden;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.floor-plan-editor-modal {
+  background: var(--card);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 1400px;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .editor-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.editor-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+
+[data-theme="dark"] .close-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+[data-theme="dark"] .editor-toolbar {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.editor-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.editor-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.editor-btn:active {
+  transform: translateY(0);
+}
+
+.editor-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-cancel {
+  background: var(--card);
+  color: var(--text);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .btn-cancel {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-reset {
+  background: #f59e0b;
+  color: white;
+}
+
+.editor-instructions {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(102, 126, 234, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .editor-instructions {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.floor-plan-editor-map {
+  position: relative;
+  width: 100%;
+  height: 450px;
+  background: #f8f9fa;
+  overflow: hidden;
+  padding: 15px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme="dark"] .floor-plan-editor-map {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.floor-plan-editor-map.edit-mode {
+  cursor: default;
+}
+
+.floor-plan-editor-map.dragging {
+  cursor: grabbing !important;
+}
+
+.floor-plan-editor-map.dragging * {
+  cursor: grabbing !important;
+}
+
+/* Editable elements styling */
+.floor-plan-editor-map .floor-element,
+.floor-plan-editor-map .floor-table,
+.floor-plan-editor-map .window-indicator {
+  cursor: grab;
+  user-select: none;
+  position: absolute;
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+
+.floor-plan-editor-map.edit-mode .floor-element:hover:not(.locked),
+.floor-plan-editor-map.edit-mode .floor-table:hover:not(.locked),
+.floor-plan-editor-map.edit-mode .window-indicator:hover:not(.locked) {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+  z-index: 1000;
+}
+
+.floor-plan-editor-map .dragging-active {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+  z-index: 1001 !important;
+  cursor: grabbing !important;
+  opacity: 0.9;
+}
+
+.floor-plan-editor-map .selected {
+  box-shadow: 0 0 0 3px #667eea !important;
+  z-index: 1000 !important;
+}
+
+/* Rotation Handle */
+.rotation-handle {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: grab;
+  z-index: 1002;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+}
+
+.rotation-handle::before {
+  content: '↻';
+  display: block;
+  line-height: 1;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.rotation-handle:hover {
+  transform: translateX(-50%) scale(1.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.rotation-handle:active {
+  cursor: grabbing;
+  transform: translateX(-50%) scale(1.1);
+}
+
+/* Resize Handle */
+.resize-handle {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid white;
+  border-radius: 4px;
+  cursor: nwse-resize;
+  z-index: 1002;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resize-handle::before {
+  content: '⇲';
+  display: block;
+  line-height: 1;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.resize-handle:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.resize-handle:active {
+  cursor: nwse-resize;
+  transform: scale(1.1);
+}
+
+.floor-plan-editor-map .locked {
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+.floor-plan-editor-map .locked:hover {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Drag handles */
+.drag-handle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 14px;
+  color: rgba(102, 126, 234, 0.7);
+  pointer-events: none;
+  z-index: 10;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.drag-handle-small {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  color: rgba(102, 126, 234, 0.7);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Lock icons */
+.lock-icon {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.lock-icon-small {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 8px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Import base floor plan styles */
+.floor-plan-editor-map .floor-element {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 14px;
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid #000;
+  font-size: 9px;
+  font-weight: 700;
+  color: #000;
+  z-index: 2;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 0.7;
+  pointer-events: auto;
+}
+
+[data-theme="dark"] .floor-plan-editor-map .floor-element {
+  border-color: #fff;
+  color: #fff;
+}
+
+.floor-plan-editor-map .element-label {
+  font-size: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.floor-plan-editor-map .floor-element.entrance {
+  font-size: 10px;
+  padding: 10px 28px;
+  border-width: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 7px,
+    rgba(0, 0, 0, 0.05) 7px,
+    rgba(0, 0, 0, 0.05) 14px
+  );
+}
+
+[data-theme="dark"] .floor-plan-editor-map .floor-element.entrance {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 7px,
+    rgba(255, 255, 255, 0.05) 7px,
+    rgba(255, 255, 255, 0.05) 14px
+  );
+}
+
+.floor-plan-editor-map .floor-element.counter {
+  padding: 14px 22px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 6px,
+    rgba(0, 0, 0, 0.1) 6px,
+    rgba(0, 0, 0, 0.1) 8px
+  );
+}
+
+[data-theme="dark"] .floor-plan-editor-map .floor-element.counter {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.1) 6px,
+    rgba(255, 255, 255, 0.1) 8px
+  );
+}
+
+.floor-plan-editor-map .floor-element.kitchen {
+  padding: 0;
+  border-width: 3px;
+  border-style: dashed;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(0, 0, 0, 0.04) 8px,
+    rgba(0, 0, 0, 0.04) 16px
+  );
+  position: relative;
+}
+
+.floor-plan-editor-map .floor-element.kitchen::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 2px solid #000;
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+[data-theme="dark"] .floor-plan-editor-map .floor-element.kitchen {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(255, 255, 255, 0.04) 8px,
+    rgba(255, 255, 255, 0.04) 16px
+  );
+}
+
+[data-theme="dark"] .floor-plan-editor-map .floor-element.kitchen::before {
+  border-color: #fff;
+}
+
+.floor-plan-editor-map .floor-element.restroom {
+  padding: 6px 9px;
+  width: 32px;
+  height: 40px;
+  border-radius: 3px;
+  border-style: solid;
+  border-width: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 100;
+  font-size: 8px;
+}
+
+.floor-plan-editor-map .floor-element.restroom::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border: 2px solid #000;
+  border-radius: 50%;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .floor-plan-editor-map .floor-element.restroom::after {
+  border-color: #fff;
+}
+
+.floor-plan-editor-map .window-indicator {
+  width: 5px;
+  height: 42px;
+  background: #000;
+  border: 2px solid #000;
+  border-radius: 2px;
+  z-index: 1;
+  opacity: 0.4;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  pointer-events: auto;
+}
+
+[data-theme="dark"] .floor-plan-editor-map .window-indicator {
+  background: #fff;
+  border-color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+/* Tables in editor */
+.floor-plan-editor-map .floor-table {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  border-radius: 12px;
+  border: 2px solid #000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 3;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.floor-plan-editor-map .floor-table.tiny {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.floor-plan-editor-map .floor-table.small {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.floor-plan-editor-map .floor-table.small.rectangular {
+  width: 64px;
+  height: 36px;
+  border-radius: 6px;
+}
+
+.floor-plan-editor-map .floor-table.medium {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+}
+
+.floor-plan-editor-map .floor-table.large {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+
+.floor-plan-editor-map .floor-table.xlarge {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+}
+
+.floor-plan-editor-map .floor-table {
+  border-color: #000;
+  opacity: 1;
+}
+
+[data-theme="dark"] .floor-plan-editor-map .floor-table {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(30, 30, 30, 0.8);
+}
+
+.floor-plan-editor-map .table-chair {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #000;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .floor-plan-editor-map .table-chair {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.floor-plan-editor-map .table-number {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.floor-plan-editor-map .table-capacity {
+  font-size: 7px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 1px;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .floor-plan-editor-overlay {
+    padding: 10px;
+  }
+
+  .floor-plan-editor-modal {
+    height: 95vh;
+  }
+
+  .editor-header {
+    padding: 16px 20px;
+  }
+
+  .editor-header h2 {
+    font-size: 20px;
+  }
+
+  .editor-toolbar {
+    padding: 12px 20px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-group {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .editor-btn {
+    flex: 1;
+    padding: 12px 16px;
+  }
+
+  .editor-instructions {
+    padding: 10px 20px;
+  }
+
+  .floor-plan-editor-map {
+    min-height: 500px;
+  }
+
+  .floor-plan-editor-map .floor-table.tiny {
+    width: 40px;
+    height: 40px;
+  }
+  .floor-plan-editor-map .floor-table.small {
+    width: 50px;
+    height: 50px;
+  }
+  .floor-plan-editor-map .floor-table.small.rectangular {
+    width: 72px;
+    height: 42px;
+  }
+  .floor-plan-editor-map .floor-table.medium {
+    width: 60px;
+    height: 60px;
+  }
+  .floor-plan-editor-map .floor-table.large {
+    width: 72px;
+    height: 72px;
+  }
+  .floor-plan-editor-map .floor-table.xlarge {
+    width: 86px;
+    height: 86px;
+  }
+
+  .floor-plan-editor-map .table-number {
+    font-size: 13px;
+  }
+  .floor-plan-editor-map .table-capacity {
+    font-size: 8px;
+  }
+  .floor-plan-editor-map .table-chair {
+    width: 10px;
+    height: 10px;
+  }
+}

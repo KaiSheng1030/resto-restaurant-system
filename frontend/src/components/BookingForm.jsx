@@ -7,6 +7,7 @@ export default function BookingForm({ setToast }) {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [loading, setLoading] = useState(false);
+  const [assignedTable, setAssignedTable] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -25,13 +26,16 @@ export default function BookingForm({ setToast }) {
         time: `${date} ${time}`
       };
 
-      await createBooking(payload);
+      const res = await createBooking(payload);
+      const tableId = res.data?.table;
+      setAssignedTable(tableId);
 
-      setToast?.("Reservation Created!");
+      setToast?.(tableId ? `Reservation Created! Table ${tableId} assigned.` : "Reservation Created!");
       setName("");
       setPeople(2);
       setDate("");
       setTime("");
+      setTimeout(() => setAssignedTable(null), 3000);
 
     } catch (err) {
       console.log(err.response?.data);
@@ -53,6 +57,11 @@ export default function BookingForm({ setToast }) {
           {loading ? "Saving..." : "Book Now"}
         </button>
       </form>
+      {assignedTable && (
+        <div className="assigned-table-info" style={{ marginTop: '10px', padding: '10px', backgroundColor: '#e8f5e9', borderRadius: '4px', fontSize: '14px', color: '#2e7d32' }}>
+          ✓ Table {assignedTable} has been assigned to you.
+        </div>
+      )}
     </div>
   );
 }
