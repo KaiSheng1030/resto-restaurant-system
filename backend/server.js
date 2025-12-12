@@ -22,8 +22,14 @@ const floorplanRoutes = require("./routes/floorplanRoutes");
 const app = express();
 
 // Configure CORS to allow your frontend
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://black-sky-050afb700.3.azurestaticapps.net',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:3000'],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(bodyParser.json());
