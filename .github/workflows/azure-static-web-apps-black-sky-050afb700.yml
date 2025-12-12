@@ -32,6 +32,7 @@ jobs:
           npm run build
         env:
           CI: false
+          REACT_APP_API_URL: https://resto-ehe7hnfmapa7gbh6.malaysiawest-01.azurewebsites.net/api
       
       - name: Build And Deploy
         id: builddeploy
