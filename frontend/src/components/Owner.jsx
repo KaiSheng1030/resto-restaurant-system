@@ -213,7 +213,7 @@ export default function Owner({ lang = "en", userRole }) {
         : (typeof tbl === "object" ? getID(tbl) : tbl);
         
       // Ensure we compare numbers to numbers if possible
-      return checkId == tableNum;
+      return checkId === tableNum;
     });
 
     if (tableExists) {

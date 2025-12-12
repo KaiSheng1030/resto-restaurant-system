@@ -81,6 +81,7 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
     };
     
     updateTablePositions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const t = {
@@ -578,6 +579,7 @@ export default function FloorPlanEditor({ tables = [], onClose, lang = "en" }) {
         window.removeEventListener("mouseup", handleMouseUp);
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draggedItem, dragOffset, positions]);
 
   return (

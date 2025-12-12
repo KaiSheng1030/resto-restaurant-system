@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 export default function Toast({ message, close }) {
   useEffect(() => {
     setTimeout(close, 7000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Render directly to body using Portal to ensure fixed positioning works
