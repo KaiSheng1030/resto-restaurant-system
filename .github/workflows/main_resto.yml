@@ -62,5 +62,5 @@ jobs:
         with:
           app-name: 'Resto'
           slot-name: 'Production'
-          package: .
+          package: ./node-app
           
