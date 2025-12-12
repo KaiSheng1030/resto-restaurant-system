@@ -1,9 +1,11 @@
 console.log("Server.js is starting...");
-// --- Azure MongoDB Connection ---
+// Load environment variables
+require('dotenv').config();
+
 // --- Azure MongoDB Connection ---
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://KaiSheng1030:IloveAzure123@restoks.global.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000")
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ Connected to Azure MongoDB"))
   .catch(err => console.error("❌ MongoDB connection error:", err));
 
@@ -19,7 +21,11 @@ const floorplanRoutes = require("./routes/floorplanRoutes");
 
 const app = express();
 
-app.use(cors());
+// Configure CORS to allow your frontend
+app.use(cors({
+  origin: [process.env.FRONTEND_URL || 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 // Routes

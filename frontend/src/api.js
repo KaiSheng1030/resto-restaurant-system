@@ -1,8 +1,7 @@
 import axios from "axios";
 
-// ----------------- BASE URL -----------------
-// Update this to your Azure backend URL
-const API = "http://localhost:5000/api";
+// Use environment variable for API URL, fallback to localhost for development
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 // ----------------- BOOKINGS API -----------------
 export const createBooking = (data) =>
