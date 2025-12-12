@@ -7,8 +7,9 @@ export default function TableTimeSlots({ tableId, onClose }) {
   const [reservedTimes, setReservedTimes] = useState([]);
 
   useEffect(() => {
+    const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
     axios
-      .get(`http://localhost:5000/api/bookings/table/${tableId}`)
+      .get(`${API}/bookings/table/${tableId}`)
       .then((res) => {
         const times = res.data.map((b) => b.time);
         setReservedTimes(times);

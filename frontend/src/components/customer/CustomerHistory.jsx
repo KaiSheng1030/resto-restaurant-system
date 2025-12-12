@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../../customer.css";
-const API = "http://localhost:5000/api";
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 export default function CustomerHistory({ userPhone, setPage, lang = 'en' }) {
       // Add dark mode styles for history box

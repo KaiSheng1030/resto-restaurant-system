@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/tables";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const API = `${API_BASE}/tables`;
 
 // ⭐ 获取桌子列表
 export const getTables = async () => {
