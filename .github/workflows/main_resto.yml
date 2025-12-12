@@ -33,7 +33,7 @@ jobs:
       - name: Archive backend for deploy
         run: |
           cd backend
-          Compress-Archive -Path * -DestinationPath ../backend.zip -Force
+          Get-ChildItem -Exclude node_modules,*.zip,.env,.git | Compress-Archive -DestinationPath ../backend.zip -Force
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
