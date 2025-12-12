@@ -60,7 +60,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'Resto'
+            app-name: 'resto-ehe7hnfmapa7gbh6'
           slot-name: 'Production'
           package: .
           
